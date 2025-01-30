@@ -1,9 +1,14 @@
+# -*- coding: utf-8 -*-
+from . import __version__ as app_version
+
 app_name = "medication_automation"
 app_title = "Medication Automation"
-app_publisher = "Onesimas Mukane"
-app_description = "Complete automation"
-app_email = "mukaonesimas@gmail.com"
-app_license = "mit"
+app_publisher = "Byoosi"
+app_description = "Medication Automation"
+app_icon = "octicon octicon-file-directory"
+app_color = "grey"
+app_email = "info@byoosi.com"
+app_license = "MIT"
 
 # Apps
 # ------------------
@@ -26,7 +31,7 @@ app_license = "mit"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/medication_automation/css/medication_automation.css"
-# app_include_js = "/assets/medication_automation/js/medication_automation.js"
+app_include_js = "/assets/medication_automation/js/patient_encounter.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/medication_automation/css/medication_automation.css"
@@ -43,7 +48,9 @@ app_license = "mit"
 # page_js = {"page" : "public/js/file.js"}
 
 # include js in doctype views
-# doctype_js = {"doctype" : "public/js/doctype.js"}
+doctype_js = {
+	"Patient Encounter": "public/js/patient_encounter.js"
+}
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -137,34 +144,19 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Inpatient Medication Entry": {
+		"on_submit": "medication_automation.doc_events.on_submit_medication_entry"
+	}
+}
 
 # Scheduled Tasks
 # ---------------
-
-# scheduler_events = {
-# 	"all": [
-# 		"medication_automation.tasks.all"
-# 	],
-# 	"daily": [
-# 		"medication_automation.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"medication_automation.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"medication_automation.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"medication_automation.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"all": [
+		"medication_automation.scheduler.create_medication_entries"
+	]
+}
 
 # Testing
 # -------
@@ -241,4 +233,6 @@ app_license = "mit"
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
+
+# Custom Scripts
 
