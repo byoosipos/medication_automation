@@ -155,7 +155,7 @@ doc_events = {
 scheduler_events = {
 	"cron": {
 		"* * * * *": [
-			"medication_automation.medication_automation.scheduler.schedule_medication_entries"
+			"medication_automation.scheduler.schedule_medication_entries"
 		]
 	}
 }
