@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from frappe.utils import now_datetime, get_datetime
 from .automation import check_medication_status, get_patient_service_unit
+from healthcare.config.serverscript import auto_create_medication_entries
 
 def create_medication_entries():
     """
@@ -94,4 +95,14 @@ def create_medication_entry(medication, order_doc, service_unit=None):
     
     # Mark the medication as completed
     medication_doc.is_completed = 1
-    medication_doc.save() 
+    medication_doc.save()
+
+def schedule_medication_entries():
+    """
+    Scheduler event to create medication entries
+    Runs every minute to check for pending orders
+    """
+    try:
+        auto_create_medication_entries()
+    except Exception as e:
+        frappe.log_error(f"Error in medication entry scheduler: {str(e)}") 

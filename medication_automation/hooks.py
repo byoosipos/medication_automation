@@ -153,9 +153,11 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 scheduler_events = {
-	"all": [
-		"medication_automation.scheduler.create_medication_entries"
-	]
+	"cron": {
+		"* * * * *": [
+			"medication_automation.medication_automation.scheduler.schedule_medication_entries"
+		]
+	}
 }
 
 # Testing
