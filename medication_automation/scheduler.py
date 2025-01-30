@@ -104,9 +104,8 @@ def schedule_medication_entries():
     """
     try:
         frappe.logger().debug("Starting medication entry scheduler")
-        result = auto_create_medication_entries()
-        frappe.logger().debug(f"Medication scheduler result: {result}")
-        return result
+        create_medication_entries()
+        frappe.logger().debug("Medication entries created successfully")
     except Exception as e:
         frappe.logger().error(f"Error in medication entry scheduler: {str(e)}")
         frappe.log_error(f"Error in medication entry scheduler: {str(e)}", "Medication Scheduler Error") 
