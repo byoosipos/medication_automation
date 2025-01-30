@@ -175,9 +175,14 @@ def create_consumables_stock_entry(doc):
     stock_entry.insert()
     stock_entry.submit()
     
-    # Link stock entry to medication entry
-    frappe.db.set_value("Inpatient Medication Entry", doc.name, 
-                       "custom_consumables_stock_entry", stock_entry.name)
+    # Try to link stock entry to medication entry, handle case where column doesn't exist
+    try:
+        frappe.db.set_value("Inpatient Medication Entry", doc.name, 
+                           "custom_consumables_stock_entry", stock_entry.name)
+    except Exception as e:
+        frappe.log_error(f"Could not set stock entry reference for {doc.name}: {str(e)}")
+        # Continue processing as this is not a critical error
+        pass
 
 def create_sales_invoice(doc):
     """Create sales invoice for medications and billable consumables"""
@@ -215,11 +220,11 @@ def create_sales_invoice(doc):
     
     # Link invoice to medication entry
     frappe.db.set_value("Inpatient Medication Entry", doc.name, 
-                       "sales_invoice", invoice.name)
+                       "custom_sales_invoice", invoice.name)
 
 def add_medication_item(invoice, medication):
     """Add medication item to sales invoice"""
-    item_code = medication.drug
+    item_code = medication.drug_code
     if not frappe.db.exists("Item", item_code):
         frappe.throw(_("Item {0} not found").format(item_code))
         
@@ -228,11 +233,14 @@ def add_medication_item(invoice, medication):
         "income_account"
     )
     
+    # Get warehouse from parent document
+    warehouse = frappe.db.get_value("Inpatient Medication Entry", medication.parent, "warehouse")
+    
     invoice.append("items", {
         "item_code": item_code,
         "qty": medication.dosage or 1,
         "rate": frappe.db.get_value("Item", item_code, "standard_rate") or 0,
-        "warehouse": medication.warehouse,
+        "warehouse": warehouse,
         "income_account": income_account,
         "description": f"{medication.drug_name} - {medication.dosage} units"
     })
