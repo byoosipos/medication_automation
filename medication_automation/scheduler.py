@@ -1,14 +1,17 @@
 import frappe
 from frappe import _
-from frappe.utils import now_datetime, get_datetime
+from frappe.utils import now_datetime, get_datetime, add_to_date
 from .automation import check_medication_status, get_patient_service_unit
 from healthcare.config.serverscript import auto_create_medication_entries
 
 def create_medication_entries():
     """
     Scheduler job to create medication entries
-    Checks medication status before creating entries
+    Runs every minute to create entries for medications due at the exact time
     """
+    current_datetime = now_datetime()
+    next_minute = add_to_date(current_datetime, minutes=1)
+    
     # Get active medication orders
     orders = frappe.get_all(
         "Inpatient Medication Order",
@@ -18,8 +21,6 @@ def create_medication_entries():
         },
         fields=["name", "patient_encounter", "patient"]
     )
-    
-    current_datetime = now_datetime()
     
     for order in orders:
         # Check if medication is still active for this encounter
@@ -32,75 +33,64 @@ def create_medication_entries():
         inpatient_record = frappe.db.get_value("Patient", order.patient, "inpatient_record")
         service_unit = get_patient_service_unit(inpatient_record)
         
-        # Get medication orders due in the next interval
+        # Get medication orders due in the current minute
         due_medications = frappe.get_all(
             "Inpatient Medication Order Entry",
             filters={
                 "parent": order.name,
                 "date": current_datetime.date(),
-                "time": ["<=", current_datetime.strftime("%H:%M:%S")],
+                "time": ["between", [current_datetime.strftime("%H:%M:%S"), next_minute.strftime("%H:%M:%S")]],
                 "is_completed": 0
-            }
+            },
+            fields=["name", "drug", "drug_name", "dosage", "dosage_form", "date", "time", "comment"]
         )
         
-        for medication in due_medications:
+        if due_medications:
             try:
-                create_medication_entry(medication, order_doc, service_unit)
+                # Create a single medication entry for all due medications
+                entry = frappe.get_doc({
+                    "doctype": "Inpatient Medication Entry",
+                    "patient": order.patient,
+                    "patient_encounter": order.patient_encounter,
+                    "company": order_doc.company,
+                    "posting_date": current_datetime.date(),
+                    "medication_orders": []
+                })
+                
+                for medication in due_medications:
+                    entry.append("medication_orders", {
+                        "patient": order.patient,
+                        "patient_name": frappe.db.get_value("Patient", order.patient, "patient_name"),
+                        "inpatient_record": inpatient_record,
+                        "service_unit": service_unit,
+                        "datetime": get_datetime(f"{medication.date} {medication.time}"),
+                        "drug_code": medication.drug,
+                        "drug_name": medication.drug_name,
+                        "dosage": medication.dosage,
+                        "dosage_form": medication.dosage_form,
+                        "against_imo": order.name,
+                        "against_imoe": medication.name
+                    })
+                
+                entry.insert()
+                entry.submit()
+                
+                # Mark medications as completed
+                for medication in due_medications:
+                    frappe.db.set_value("Inpatient Medication Order Entry", medication.name, "is_completed", 1)
+                frappe.db.commit()
+                
             except Exception as e:
                 frappe.log_error(
-                    f"Error creating medication entry for order {order.name}, "
-                    f"medication {medication.name}: {str(e)}"
+                    f"Error creating medication entry for order {order.name}: {str(e)}",
+                    "Medication Entry Creation Error"
                 )
-
-def create_medication_entry(medication, order_doc, service_unit=None):
-    """Create individual medication entry"""
-    medication_doc = frappe.get_doc("Inpatient Medication Order Entry", medication.name)
-    
-    if medication_doc.is_completed:
-        return
-        
-    entry = frappe.get_doc({
-        "doctype": "Inpatient Medication Entry",
-        "patient": order_doc.patient,
-        "patient_encounter": order_doc.patient_encounter,
-        "company": order_doc.company,
-        "medication_order": order_doc.name,
-        "drug": medication_doc.drug,
-        "drug_name": medication_doc.drug_name,
-        "dosage": medication_doc.dosage,
-        "dosage_form": medication_doc.dosage_form,
-        "date": medication_doc.date,
-        "time": medication_doc.time,
-        "comment": medication_doc.comment,
-        "update_stock": 1  # Enable stock update
-    })
-    
-    # Add medication order with service unit
-    entry.append("medication_orders", {
-        "drug": medication_doc.drug,
-        "drug_name": medication_doc.drug_name,
-        "dosage": medication_doc.dosage,
-        "dosage_form": medication_doc.dosage_form,
-        "date": medication_doc.date,
-        "time": medication_doc.time,
-        "comment": medication_doc.comment,
-        "service_unit": service_unit or medication_doc.service_unit,  # Use provided service unit or from medication doc
-        "against_imo": order_doc.name,
-        "patient": order_doc.patient,
-        "patient_name": frappe.db.get_value("Patient", order_doc.patient, "patient_name")
-    })
-    
-    entry.insert()
-    entry.submit()
-    
-    # Mark the medication as completed
-    medication_doc.is_completed = 1
-    medication_doc.save()
+                continue
 
 def schedule_medication_entries():
     """
     Scheduler event to create medication entries
-    Runs every minute to check for pending orders
+    Runs every minute to check for pending orders at exact times
     """
     try:
         frappe.logger().debug("Starting medication entry scheduler")
