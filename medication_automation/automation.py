@@ -301,3 +301,39 @@ def check_medication_status(encounter):
         return bool(active_orders)
     except Exception:
         return False  # Default to inactive if can't check 
+
+def get_patient_service_unit(patient):
+    """
+    Get the current service unit for an inpatient
+    Returns the service unit from the latest Inpatient Occupancy
+    """
+    if not patient:
+        return None
+        
+    # Get active Inpatient Record
+    inpatient_record = frappe.get_all(
+        "Inpatient Record",
+        filters={
+            "patient": patient,
+            "status": "Admitted"
+        },
+        order_by="creation desc",
+        limit=1
+    )
+    
+    if not inpatient_record:
+        return None
+        
+    # Get latest occupancy
+    occupancy = frappe.get_all(
+        "Inpatient Occupancy",
+        filters={
+            "parent": inpatient_record[0].name,
+            "left": 0
+        },
+        fields=["service_unit"],
+        order_by="check_in desc",
+        limit=1
+    )
+    
+    return occupancy[0].service_unit if occupancy else None 
