@@ -142,7 +142,7 @@ def on_submit_medication_entry(doc, method):
     """Handle stock entry and sales invoice creation on medication entry submission"""
     try:
         # First create stock entry for consumables
-        if doc.consumables:
+        if doc.custom_consumables:
             create_consumables_stock_entry(doc)
         
         # Then create sales invoice
@@ -153,7 +153,7 @@ def on_submit_medication_entry(doc, method):
 
 def create_consumables_stock_entry(doc):
     """Create stock entry for consumables"""
-    if not doc.consumables or not doc.warehouse:
+    if not doc.custom_consumables or not doc.warehouse:
         return
         
     stock_entry = frappe.new_doc("Stock Entry")
@@ -162,7 +162,7 @@ def create_consumables_stock_entry(doc):
     stock_entry.posting_date = doc.posting_date
     stock_entry.from_warehouse = doc.warehouse
     
-    for item in doc.consumables:
+    for item in doc.custom_consumables:
         stock_entry.append("items", {
             "item_code": item.item,
             "qty": item.qty,
@@ -177,7 +177,7 @@ def create_consumables_stock_entry(doc):
     
     # Link stock entry to medication entry
     frappe.db.set_value("Inpatient Medication Entry", doc.name, 
-                       "consumables_stock_entry", stock_entry.name)
+                       "custom_consumables_stock_entry", stock_entry.name)
 
 def create_sales_invoice(doc):
     """Create sales invoice for medications and billable consumables"""
@@ -203,7 +203,7 @@ def create_sales_invoice(doc):
         add_medication_item(invoice, medication)
     
     # Add consumable items
-    for consumable in doc.consumables:
+    for consumable in doc.custom_consumables:
         if consumable.billable:
             add_consumable_item(invoice, consumable, doc.warehouse)
     
