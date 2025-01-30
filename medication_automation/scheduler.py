@@ -103,6 +103,10 @@ def schedule_medication_entries():
     Runs every minute to check for pending orders
     """
     try:
-        auto_create_medication_entries()
+        frappe.logger().debug("Starting medication entry scheduler")
+        result = auto_create_medication_entries()
+        frappe.logger().debug(f"Medication scheduler result: {result}")
+        return result
     except Exception as e:
-        frappe.log_error(f"Error in medication entry scheduler: {str(e)}") 
+        frappe.logger().error(f"Error in medication entry scheduler: {str(e)}")
+        frappe.log_error(f"Error in medication entry scheduler: {str(e)}", "Medication Scheduler Error") 
