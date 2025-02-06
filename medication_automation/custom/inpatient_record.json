@@ -1,0 +1,37 @@
+{
+    "custom_fields": [
+        {
+            "fieldname": "admission_invoice",
+            "fieldtype": "Link",
+            "insert_after": "admission_encounter",
+            "label": "Admission Invoice",
+            "options": "Sales Invoice",
+            "read_only": 1,
+            "doctype": "Custom Field",
+            "dt": "Inpatient Record"
+        },
+        {
+            "fieldname": "next_care_billing",
+            "fieldtype": "Datetime",
+            "insert_after": "admission_invoice",
+            "label": "Next Care Billing Due",
+            "read_only": 1,
+            "doctype": "Custom Field",
+            "dt": "Inpatient Record"
+        },
+        {
+            "fieldname": "last_care_invoice",
+            "fieldtype": "Link",
+            "insert_after": "next_care_billing",
+            "label": "Last Care Invoice",
+            "options": "Sales Invoice",
+            "read_only": 1,
+            "doctype": "Custom Field",
+            "dt": "Inpatient Record"
+        }
+    ],
+    "custom_perms": [],
+    "doctype": "Inpatient Record",
+    "property_setters": [],
+    "sync_on_migrate": 1
+} 

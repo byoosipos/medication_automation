@@ -2,6 +2,7 @@ import frappe
 from frappe import _
 from frappe.utils import now_datetime, add_to_date, get_datetime, get_time, getdate, add_days
 from healthcare.healthcare.doctype.prescription_duration.prescription_duration import PrescriptionDuration
+import json
 
 def get_frequency_times(frequency, start_time):
     """
@@ -254,33 +255,161 @@ def create_inpatient_medication_order(encounter, start_date=None, start_time=Non
     return medication_order.name
 
 @frappe.whitelist()
-def stop_medication(encounter, reason):
+def get_active_medications(encounter):
     """
-    Stop auto-creation of medication entries for a specific encounter
-    Updates Inpatient Medication Order treatment status
+    Get list of active medications for an encounter
+    Returns medications that are:
+    1. Not completed
+    2. Scheduled for today or future dates
+    3. From active medication orders
     """
     try:
-        # Find and update related medication orders
+        if not encounter:
+            frappe.throw(_("Patient encounter is required"))
+
+        # Get all medication orders for this encounter
         medication_orders = frappe.get_all(
             "Inpatient Medication Order",
             filters={
                 "patient_encounter": encounter,
                 "docstatus": 1,  # Submitted
-                "custom_treatment_status": ["!=", "Stopped"]
+                "custom_treatment_status": "Active"
+            },
+            fields=["name", "patient", "start_date", "end_date"]
+        )
+        
+        if not medication_orders:
+            frappe.msgprint(_("No active medication orders found for this encounter"))
+            return []
+        
+        active_medications = []
+        today = frappe.utils.today()
+        
+        for order in medication_orders:
+            # Get medication entries that are not completed
+            entries = frappe.get_all(
+                "Inpatient Medication Order Entry",
+                filters={
+                    "parent": order.name,
+                    "is_completed": 0,
+                    "date": [">=", today]  # Only future/today medications
+                },
+                fields=[
+                    "name", "drug", "drug_name", "dosage", "period", 
+                    "date", "time", "dosage_form", "comment", "instructions"
+                ]
+            )
+            
+            # Add order details to each entry
+            for entry in entries:
+                entry.order_name = order.name
+                entry.patient = order.patient
+                entry.start_date = order.start_date
+                entry.end_date = order.end_date
+                
+                # Format the schedule time for display
+                entry.schedule_datetime = f"{entry.date} {entry.time}"
+                
+                # Add to active medications
+                active_medications.append(entry)
+        
+        # Sort by date and time
+        active_medications.sort(key=lambda x: (x.date, x.time))
+        
+        if not active_medications:
+            frappe.msgprint(_("No active medications found that can be stopped"))
+            
+        return active_medications
+        
+    except Exception as e:
+        frappe.log_error(
+            f"Error fetching active medications for encounter {encounter}: {str(e)}",
+            "Get Active Medications Error"
+        )
+        frappe.throw(_("Error fetching active medications. Please check error logs."))
+        return []
+
+@frappe.whitelist()
+def stop_medication(encounter, reason, medication_entries=None):
+    """
+    Stop auto-creation of medication entries for specific medications in an encounter
+    Updates Inpatient Medication Order Entry status
+    Args:
+        encounter: Patient Encounter ID
+        reason: Reason for stopping medications
+        medication_entries: List of Inpatient Medication Order Entry IDs to stop
+    """
+    try:
+        if not encounter:
+            frappe.throw(_("Patient encounter is required"))
+            
+        if not reason:
+            frappe.throw(_("Please provide a reason for stopping medications"))
+            
+        if isinstance(medication_entries, str):
+            try:
+                medication_entries = json.loads(medication_entries)
+            except Exception:
+                frappe.throw(_("Invalid medication entries format"))
+            
+        if not medication_entries or not isinstance(medication_entries, list):
+            frappe.throw(_("Please select medications to stop"))
+            
+        # Get all medication orders for this encounter
+        medication_orders = frappe.get_all(
+            "Inpatient Medication Order",
+            filters={
+                "patient_encounter": encounter,
+                "docstatus": 1,  # Submitted
+                "custom_treatment_status": "Active"
             }
         )
         
+        if not medication_orders:
+            frappe.throw(_("No active medication orders found for this encounter"))
+            
+        medications_stopped = False
         for order in medication_orders:
             order_doc = frappe.get_doc("Inpatient Medication Order", order.name)
-            order_doc.custom_treatment_status = "Stopped"
-            order_doc.add_comment('Comment', text=f'Medication stopped: {reason}')
-            order_doc.save()
+            
+            # Mark selected entries as completed
+            entries_modified = False
+            for entry in order_doc.medication_orders:
+                if entry.name in medication_entries:
+                    if not entry.is_completed:  # Only modify if not already completed
+                        entry.is_completed = 1
+                        entries_modified = True
+                        medications_stopped = True
+            
+            if entries_modified:
+                # Add comment about stopped medications
+                stopped_meds = [
+                    f"{entry.drug_name} ({entry.dosage} {entry.period or 'As Needed'})"
+                    for entry in order_doc.medication_orders
+                    if entry.name in medication_entries
+                ]
+                comment = f'Medications stopped: {", ".join(stopped_meds)}\nReason: {reason}'
+                order_doc.add_comment('Comment', text=comment)
+                
+                # Check if all medications in this order are completed
+                all_completed = all(entry.is_completed for entry in order_doc.medication_orders)
+                if all_completed:
+                    order_doc.custom_treatment_status = "Stopped"
+                
+                order_doc.save()
         
+        if not medications_stopped:
+            frappe.throw(_("No medications were stopped. They may have already been completed."))
+            
         return True
         
     except Exception as e:
-        frappe.log_error(f"Error stopping medication for encounter {encounter}: {str(e)}")
-        frappe.throw(_("Failed to stop medication. Please check error logs."))
+        frappe.log_error(
+            f"Error stopping medications for encounter {encounter}: {str(e)}\n"
+            f"Medication entries: {medication_entries}",
+            "Medication Stop Error"
+        )
+        raise
 
 def check_medication_status(encounter):
     """

@@ -168,43 +168,205 @@ function create_medication_order(frm, values) {
 }
 
 function show_stop_medication_dialog(frm) {
-    let d = new frappe.ui.Dialog({
-        title: __('Stop Medication'),
-        fields: [
-            {
+    // First fetch active medications
+    frappe.call({
+        method: 'medication_automation.automation.get_active_medications',
+        args: {
+            encounter: frm.doc.name
+        },
+        freeze: true,
+        freeze_message: __('Fetching active medications...'),
+        callback: function(r) {
+            if (!r.message || !r.message.length) {
+                frappe.msgprint({
+                    title: __('No Active Medications'),
+                    message: __('There are no active medications that can be stopped for this encounter.'),
+                    indicator: 'orange'
+                });
+                return;
+            }
+
+            // Group medications by drug name for better organization
+            let medications_by_drug = {};
+            r.message.forEach(med => {
+                if (!medications_by_drug[med.drug_name]) {
+                    medications_by_drug[med.drug_name] = [];
+                }
+                medications_by_drug[med.drug_name].push(med);
+            });
+
+            let fields = [
+                {
+                    fieldname: 'help_html',
+                    fieldtype: 'HTML',
+                    options: `
+                        <div class="alert alert-info">
+                            <p><strong>${__('Instructions')}:</strong></p>
+                            <ul>
+                                <li>${__('Select the medications you want to stop')}</li>
+                                <li>${__('Each checkbox represents a scheduled dose')}</li>
+                                <li>${__('You can use Select All/Deselect All buttons for each medication')}</li>
+                            </ul>
+                        </div>
+                    `
+                }
+            ];
+
+            // Add medications section
+            Object.keys(medications_by_drug).forEach(drug_name => {
+                // Add section for each drug
+                fields.push({
+                    fieldname: `section_${drug_name.replace(/[^a-zA-Z0-9]/g, '_')}`,
+                    fieldtype: 'Section Break',
+                    label: drug_name
+                });
+
+                // Add select/deselect buttons for this drug
+                fields.push({
+                    fieldname: `html_${drug_name.replace(/[^a-zA-Z0-9]/g, '_')}`,
+                    fieldtype: 'HTML',
+                    options: `
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <button class="btn btn-xs btn-default" 
+                                    onclick="cur_dialog.events.select_drug('${drug_name}', true)">
+                                    ${__('Select All')}
+                                </button>
+                                <button class="btn btn-xs btn-default" 
+                                    onclick="cur_dialog.events.select_drug('${drug_name}', false)">
+                                    ${__('Deselect All')}
+                                </button>
+                            </div>
+                        </div>
+                    `
+                });
+
+                // Add each scheduled dose
+                medications_by_drug[drug_name].forEach(med => {
+                    let schedule_time = frappe.datetime.str_to_user(med.date) + 
+                                     ' ' + med.time;
+                    let label = `${med.dosage || '1'} ${med.dosage_form || ''} ${med.period || 'As Needed'} (${schedule_time})`;
+                    if (med.instructions) {
+                        label += `<br><small class="text-muted">${med.instructions}</small>`;
+                    }
+                    
+                    fields.push({
+                        fieldname: `med_${med.name}`,
+                        fieldtype: 'Check',
+                        label: label,
+                        default: 1,  // Checked by default
+                        drug_name: drug_name  // Custom property for select/deselect functionality
+                    });
+                });
+            });
+
+            // Add reason section
+            fields.push({
+                fieldname: 'reason_section',
+                fieldtype: 'Section Break',
+                label: __('Stop Reason')
+            });
+
+            fields.push({
                 fieldname: 'stop_reason',
                 label: __('Reason for Stopping'),
                 fieldtype: 'Small Text',
                 reqd: 1
-            }
-        ],
-        primary_action_label: __('Stop'),
-        primary_action: function() {
-            stop_medication(frm, d.get_value('stop_reason'));
-            d.hide();
+            });
+
+            let d = new frappe.ui.Dialog({
+                title: __('Stop Medications'),
+                fields: fields,
+                primary_action_label: __('Stop Selected'),
+                primary_action: function() {
+                    let values = d.get_values();
+                    let selected_medications = r.message
+                        .filter(med => values[`med_${med.name}`])
+                        .map(med => med.name);
+
+                    if (!selected_medications.length) {
+                        frappe.msgprint({
+                            title: __('Selection Required'),
+                            message: __('Please select at least one medication to stop'),
+                            indicator: 'red'
+                        });
+                        return;
+                    }
+
+                    // Confirm before stopping
+                    let selected_names = r.message
+                        .filter(med => values[`med_${med.name}`])
+                        .map(med => med.drug_name)
+                        .filter((value, index, self) => self.indexOf(value) === index) // unique values
+                        .join(', ');
+
+                    frappe.confirm(
+                        __('Are you sure you want to stop the following medications: {0}?', [selected_names]),
+                        function() {
+                            // Yes
+                            stop_medication(frm, values.stop_reason, selected_medications);
+                            d.hide();
+                        }
+                    );
+                }
+            });
+
+            // Add select/deselect all button
+            d.add_custom_action(__('Select All'), function() {
+                r.message.forEach(med => {
+                    d.set_value(`med_${med.name}`, 1);
+                });
+            });
+
+            d.add_custom_action(__('Deselect All'), function() {
+                r.message.forEach(med => {
+                    d.set_value(`med_${med.name}`, 0);
+                });
+            });
+
+            // Add method to select/deselect by drug
+            d.events = {
+                select_drug: function(drug_name, value) {
+                    r.message.forEach(med => {
+                        if (med.drug_name === drug_name) {
+                            d.set_value(`med_${med.name}`, value ? 1 : 0);
+                        }
+                    });
+                }
+            };
+
+            d.show();
         }
     });
-    d.show();
 }
 
-function stop_medication(frm, reason) {
+function stop_medication(frm, reason, medication_entries) {
+    if (!medication_entries || !medication_entries.length) {
+        frappe.msgprint({
+            title: __('Selection Required'),
+            message: __('Please select medications to stop'),
+            indicator: 'red'
+        });
+        return;
+    }
+
     frappe.call({
         method: 'medication_automation.automation.stop_medication',
         args: {
             encounter: frm.doc.name,
-            reason: reason
+            reason: reason,
+            medication_entries: medication_entries
         },
+        freeze: true,
+        freeze_message: __('Stopping selected medications...'),
         callback: function(r) {
             if (r.message) {
                 frappe.show_alert({
-                    message: __('Medication auto-creation stopped'),
-                    indicator: 'red'
+                    message: __('Selected medications stopped successfully'),
+                    indicator: 'green'
                 });
                 
-                // Remove the Stop Medication button
-                frm.remove_custom_button(__('Stop Medication'), __('Actions'));
-                
-                // Refresh the form
+                // Refresh the form to update the UI
                 frm.reload_doc();
             }
         }

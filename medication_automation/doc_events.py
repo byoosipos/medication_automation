@@ -151,6 +151,14 @@ def on_submit_medication_entry(doc, method):
         frappe.log_error(f"Error processing medication entry {doc.name}: {str(e)}")
         frappe.throw(_("Error processing medication entry. Please check error logs."))
 
+    # Mark medication orders as completed when the entry is submitted
+    for medication in doc.medication_orders:
+        if medication.against_imoe:  # Check if this is linked to an order entry
+            frappe.db.set_value("Inpatient Medication Order Entry", 
+                              medication.against_imoe, 
+                              "is_completed", 1)
+    frappe.db.commit()
+
 def create_consumables_stock_entry(doc):
     """Create stock entry for consumables"""
     if not doc.custom_consumables or not doc.warehouse:

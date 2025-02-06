@@ -31,7 +31,10 @@ app_license = "MIT"
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/medication_automation/css/medication_automation.css"
-app_include_js = "/assets/medication_automation/js/patient_encounter.js"
+app_include_js = [
+	"/assets/medication_automation/js/patient_encounter.js",
+	"/assets/medication_automation/js/stock_entry.js"
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/medication_automation/css/medication_automation.css"
@@ -49,7 +52,8 @@ app_include_js = "/assets/medication_automation/js/patient_encounter.js"
 
 # include js in doctype views
 doctype_js = {
-	"Patient Encounter": "public/js/patient_encounter.js"
+	"Patient Encounter": "public/js/patient_encounter.js",
+	"Stock Entry": "public/js/stock_entry.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -156,6 +160,9 @@ scheduler_events = {
 	"cron": {
 		"* * * * *": [
 			"medication_automation.scheduler.schedule_medication_entries"
+		],
+		"0 8 * * *": [
+			"medication_automation.scheduler.create_daily_medication_stock_requisition"
 		]
 	}
 }

@@ -1,0 +1,242 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "creation": "2024-02-02 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pharmacy_section",
+  "default_pharmacy_warehouse",
+  "default_pharmacy_user",
+  "default_pharmacy_user_role",
+  "column_break_4",
+  "enable_auto_stock_reconciliation",
+  "auto_close_stock_entry",
+  "section_break_7",
+  "scheduling_section",
+  "stock_requisition_time",
+  "enable_weekend_scheduling",
+  "column_break_11",
+  "auto_create_nursing_task",
+  "nursing_task_role",
+  "section_break_14",
+  "notification_section",
+  "notify_low_stock",
+  "low_stock_threshold",
+  "column_break_18",
+  "enable_email_notifications",
+  "notification_email_list",
+  "section_break_21",
+  "defaults_section",
+  "default_dosage_form",
+  "default_medication_duration",
+  "column_break_25",
+  "default_frequency",
+  "default_priority"
+ ],
+ "fields": [
+  {
+   "fieldname": "pharmacy_section",
+   "fieldtype": "Section Break",
+   "label": "Pharmacy Settings"
+  },
+  {
+   "description": "Default warehouse for medication stock requisitions",
+   "fieldname": "default_pharmacy_warehouse",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Default Pharmacy Warehouse",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "description": "User responsible for pharmacy operations",
+   "fieldname": "default_pharmacy_user",
+   "fieldtype": "Link",
+   "label": "Default Pharmacy User",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Automatically reconcile stock after transfer",
+   "fieldname": "enable_auto_stock_reconciliation",
+   "fieldtype": "Check",
+   "label": "Enable Auto Stock Reconciliation"
+  },
+  {
+   "default": "0",
+   "description": "Automatically close stock entries after verification",
+   "fieldname": "auto_close_stock_entry",
+   "fieldtype": "Check",
+   "label": "Auto Close Stock Entry"
+  },
+  {
+   "fieldname": "section_break_7",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "scheduling_section",
+   "fieldtype": "Section Break",
+   "label": "Scheduling Settings"
+  },
+  {
+   "default": "08:00:00",
+   "description": "Time to generate daily stock requisitions",
+   "fieldname": "stock_requisition_time",
+   "fieldtype": "Time",
+   "label": "Stock Requisition Time",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Generate stock requisitions on weekends",
+   "fieldname": "enable_weekend_scheduling",
+   "fieldtype": "Check",
+   "label": "Enable Weekend Scheduling"
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "1",
+   "description": "Automatically create nursing tasks for medication administration",
+   "fieldname": "auto_create_nursing_task",
+   "fieldtype": "Check",
+   "label": "Auto Create Nursing Task"
+  },
+  {
+   "depends_on": "eval:doc.auto_create_nursing_task==1",
+   "description": "Role assigned to nursing tasks",
+   "fieldname": "nursing_task_role",
+   "fieldtype": "Link",
+   "label": "Nursing Task Role",
+   "options": "Role"
+  },
+  {
+   "fieldname": "section_break_14",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "notification_section",
+   "fieldtype": "Section Break",
+   "label": "Notification Settings"
+  },
+  {
+   "default": "1",
+   "description": "Enable notifications for low stock",
+   "fieldname": "notify_low_stock",
+   "fieldtype": "Check",
+   "label": "Notify Low Stock"
+  },
+  {
+   "default": "10",
+   "depends_on": "eval:doc.notify_low_stock==1",
+   "description": "Threshold quantity for low stock notification",
+   "fieldname": "low_stock_threshold",
+   "fieldtype": "Int",
+   "label": "Low Stock Threshold"
+  },
+  {
+   "fieldname": "column_break_18",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Send email notifications for stock events",
+   "fieldname": "enable_email_notifications",
+   "fieldtype": "Check",
+   "label": "Enable Email Notifications"
+  },
+  {
+   "depends_on": "eval:doc.enable_email_notifications==1",
+   "description": "Comma-separated list of email addresses",
+   "fieldname": "notification_email_list",
+   "fieldtype": "Small Text",
+   "label": "Notification Email List"
+  },
+  {
+   "fieldname": "section_break_21",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "defaults_section",
+   "fieldtype": "Section Break",
+   "label": "Default Values"
+  },
+  {
+   "description": "Default dosage form for medications",
+   "fieldname": "default_dosage_form",
+   "fieldtype": "Link",
+   "label": "Default Dosage Form",
+   "options": "Dosage Form"
+  },
+  {
+   "description": "Default duration for medication orders",
+   "fieldname": "default_medication_duration",
+   "fieldtype": "Link",
+   "label": "Default Medication Duration",
+   "options": "Prescription Duration"
+  },
+  {
+   "fieldname": "column_break_25",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Default frequency for medication orders",
+   "fieldname": "default_frequency",
+   "fieldtype": "Link",
+   "label": "Default Frequency",
+   "options": "Prescription Dosage"
+  },
+  {
+   "default": "Routine",
+   "fieldname": "default_priority",
+   "fieldtype": "Select",
+   "label": "Default Priority",
+   "options": "Routine\nUrgent\nSTAT"
+  },
+  {
+   "description": "Role required for pharmacy operations",
+   "fieldname": "default_pharmacy_user_role",
+   "fieldtype": "Link",
+   "label": "Default Pharmacy User Role",
+   "options": "Role"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2024-02-02 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Medication Automation Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Nursing User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+} 
