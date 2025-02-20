@@ -42,6 +42,17 @@
    "no_copy": 1,
    "doctype": "Custom Field",
    "dt": "Inpatient Medication Entry"
+  },
+  {
+   "allow_on_submit": 1,
+   "fieldname": "custom_insurance_claimed",
+   "fieldtype": "Check",
+   "insert_after": "custom_sales_invoice",
+   "label": "Insurance Claimed",
+   "read_only": 1,
+   "no_copy": 1,
+   "doctype": "Custom Field",
+   "dt": "Inpatient Medication Entry"
   }
  ],
  "custom_perms": [],

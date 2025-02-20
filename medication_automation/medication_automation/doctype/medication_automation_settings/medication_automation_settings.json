@@ -13,6 +13,18 @@
   "enable_auto_stock_reconciliation",
   "auto_close_stock_entry",
   "section_break_7",
+  "shift_configuration_section",
+  "first_shift_start",
+  "first_shift_end",
+  "first_shift_duration",
+  "column_break_shift",
+  "second_shift_start",
+  "second_shift_end",
+  "second_shift_duration",
+  "shift_settings_section",
+  "second_shift_crosses_midnight",
+  "second_shift_next_day_end",
+  "allow_flexible_duration",
   "scheduling_section",
   "stock_requisition_time",
   "enable_weekend_scheduling",
@@ -77,6 +89,92 @@
   {
    "fieldname": "section_break_7",
    "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "shift_configuration_section",
+   "fieldtype": "Section Break",
+   "label": "Nursing Shift Configuration"
+  },
+  {
+   "default": "07:00:00",
+   "description": "Start time of first shift",
+   "fieldname": "first_shift_start",
+   "fieldtype": "Time",
+   "label": "First Shift Start Time",
+   "reqd": 1
+  },
+  {
+   "default": "19:00:00",
+   "description": "End time of first shift",
+   "fieldname": "first_shift_end",
+   "fieldtype": "Time",
+   "label": "First Shift End Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "first_shift_duration",
+   "fieldtype": "Float",
+   "label": "First Shift Duration (Hours)",
+   "default": 12,
+   "description": "Duration of first shift in hours",
+   "depends_on": "eval:doc.allow_flexible_duration",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_shift",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "19:00:00",
+   "description": "Start time of second shift",
+   "fieldname": "second_shift_start",
+   "fieldtype": "Time",
+   "label": "Second Shift Start Time",
+   "reqd": 1
+  },
+  {
+   "default": "07:00:00",
+   "description": "End time of second shift",
+   "fieldname": "second_shift_end",
+   "fieldtype": "Time",
+   "label": "Second Shift End Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "second_shift_duration",
+   "fieldtype": "Float",
+   "label": "Second Shift Duration (Hours)",
+   "default": 14,
+   "description": "Duration of second shift in hours",
+   "depends_on": "eval:doc.allow_flexible_duration",
+   "reqd": 1
+  },
+  {
+   "fieldname": "shift_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Shift Settings"
+  },
+  {
+   "default": "1",
+   "description": "Enable if second shift ends on the next day",
+   "fieldname": "second_shift_crosses_midnight",
+   "fieldtype": "Check",
+   "label": "Second Shift Crosses Midnight"
+  },
+  {
+   "default": "1",
+   "depends_on": "eval:doc.second_shift_crosses_midnight",
+   "description": "Number of hours after midnight when second shift ends",
+   "fieldname": "second_shift_next_day_end",
+   "fieldtype": "Int",
+   "label": "Second Shift Next Day End Hour"
+  },
+  {
+   "fieldname": "allow_flexible_duration",
+   "fieldtype": "Check",
+   "label": "Allow Flexible Shift Duration",
+   "default": 1,
+   "description": "Allow shifts to have different durations"
   },
   {
    "fieldname": "scheduling_section",

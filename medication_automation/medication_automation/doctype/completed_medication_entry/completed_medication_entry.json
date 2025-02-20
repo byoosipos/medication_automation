@@ -1,0 +1,78 @@
+{
+ "actions": [],
+ "creation": "2024-02-02 12:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "patient",
+  "patient_name",
+  "medication",
+  "column_break_1",
+  "dosage",
+  "time_given",
+  "given_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "patient.patient_name",
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Patient Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "medication",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Medication",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "dosage",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Dosage",
+   "reqd": 1
+  },
+  {
+   "fieldname": "time_given",
+   "fieldtype": "Datetime",
+   "in_list_view": 1,
+   "label": "Time Given",
+   "reqd": 1
+  },
+  {
+   "fieldname": "given_by",
+   "fieldtype": "Link",
+   "label": "Given By",
+   "options": "Employee",
+   "reqd": 1
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2024-02-02 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Completed Medication Entry",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+} 

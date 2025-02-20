@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "creation": "2024-03-19 12:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "medication_section",
+  "medication_entry",
+  "service_unit",
+  "scheduled_time",
+  "column_break_4",
+  "item_code",
+  "item_name",
+  "dosage",
+  "dosage_form",
+  "amount_section",
+  "amount",
+  "deductible_applied",
+  "column_break_11",
+  "insurance_amount",
+  "patient_amount",
+  "approval_section",
+  "approval_required",
+  "approval_status",
+  "column_break_approval",
+  "approval_validity",
+  "approval_remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "medication_section",
+   "fieldtype": "Section Break",
+   "label": "Medication Details"
+  },
+  {
+   "fieldname": "medication_entry",
+   "fieldtype": "Link",
+   "label": "Medication Entry",
+   "options": "Inpatient Medication Entry",
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_unit",
+   "fieldtype": "Link",
+   "label": "Service Unit",
+   "options": "Healthcare Service Unit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "scheduled_time",
+   "fieldtype": "Time",
+   "label": "Scheduled Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "item_code",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Item",
+   "options": "Item",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "item_code.item_name",
+   "fieldname": "item_name",
+   "fieldtype": "Data",
+   "label": "Item Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dosage",
+   "fieldtype": "Float",
+   "label": "Dosage",
+   "read_only": 1
+  },
+  {
+   "fieldname": "dosage_form",
+   "fieldtype": "Data",
+   "label": "Dosage Form",
+   "read_only": 1
+  },
+  {
+   "fieldname": "amount_section",
+   "fieldtype": "Section Break",
+   "label": "Amount Details"
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "deductible_applied",
+   "fieldtype": "Currency",
+   "label": "Deductible Applied",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_11",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "insurance_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Insurance Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "patient_amount",
+   "fieldtype": "Currency",
+   "label": "Patient Amount",
+   "read_only": 1
+  },
+  {
+   "fieldname": "approval_section",
+   "fieldtype": "Section Break",
+   "label": "Approval Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "approval_required",
+   "fieldtype": "Check",
+   "label": "Approval Required"
+  },
+  {
+   "depends_on": "eval:doc.approval_required==1",
+   "fieldname": "approval_status",
+   "fieldtype": "Select",
+   "label": "Approval Status",
+   "options": "Pending\nAuto-Approved\nApproved\nRejected"
+  },
+  {
+   "fieldname": "column_break_approval",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.approval_required==1",
+   "fieldname": "approval_validity",
+   "fieldtype": "Date",
+   "label": "Approval Valid Till"
+  },
+  {
+   "depends_on": "eval:doc.approval_required==1",
+   "fieldname": "approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Approval Remarks"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2024-03-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Insurance Claim Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+} 

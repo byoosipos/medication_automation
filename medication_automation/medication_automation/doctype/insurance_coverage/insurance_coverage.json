@@ -1,0 +1,262 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:INS-{insurance_company}-{patient}-{####}",
+ "creation": "2024-03-19 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "patient_section",
+  "patient",
+  "patient_name",
+  "patient_customer",
+  "insurance_section",
+  "insurance_company",
+  "policy_number",
+  "coverage_start_date",
+  "coverage_end_date",
+  "column_break_insurance",
+  "coverage_type",
+  "coverage_limit",
+  "remaining_coverage",
+  "status",
+  "billing_section",
+  "patient_copay_percent",
+  "patient_deductible",
+  "column_break_billing",
+  "deductible_remaining",
+  "max_out_of_pocket",
+  "approval_section",
+  "requires_preapproval",
+  "auto_approval_limit",
+  "column_break_approval",
+  "approval_validity_days",
+  "default_approval_status",
+  "coverage_details_section",
+  "covered_items",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "patient_section",
+   "fieldtype": "Section Break",
+   "label": "Patient Details"
+  },
+  {
+   "fieldname": "patient",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Patient",
+   "options": "Patient",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "patient.patient_name",
+   "fieldname": "patient_name",
+   "fieldtype": "Data",
+   "label": "Patient Name",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "patient.customer",
+   "fieldname": "patient_customer",
+   "fieldtype": "Link",
+   "label": "Patient's Customer Account",
+   "options": "Customer",
+   "read_only": 1
+  },
+  {
+   "fieldname": "insurance_section",
+   "fieldtype": "Section Break",
+   "label": "Insurance Details"
+  },
+  {
+   "fieldname": "insurance_company",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Insurance Company",
+   "options": "Insurance Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "policy_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Policy Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coverage_start_date",
+   "fieldtype": "Date",
+   "label": "Coverage Start Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coverage_end_date",
+   "fieldtype": "Date",
+   "label": "Coverage End Date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_insurance",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "coverage_type",
+   "fieldtype": "Select",
+   "label": "Coverage Type",
+   "options": "Full\nPartial\nCo-Pay",
+   "reqd": 1
+  },
+  {
+   "fieldname": "coverage_limit",
+   "fieldtype": "Currency",
+   "label": "Coverage Limit",
+   "reqd": 1
+  },
+  {
+   "fieldname": "remaining_coverage",
+   "fieldtype": "Currency",
+   "label": "Remaining Coverage",
+   "read_only": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nExpired\nSuspended",
+   "reqd": 1
+  },
+  {
+   "fieldname": "billing_section",
+   "fieldtype": "Section Break",
+   "label": "Billing Details"
+  },
+  {
+   "default": "20",
+   "fieldname": "patient_copay_percent",
+   "fieldtype": "Percent",
+   "label": "Patient Co-pay Percentage"
+  },
+  {
+   "fieldname": "patient_deductible",
+   "fieldtype": "Currency",
+   "label": "Patient Deductible Amount"
+  },
+  {
+   "fieldname": "column_break_billing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "deductible_remaining",
+   "fieldtype": "Currency",
+   "label": "Deductible Remaining",
+   "read_only": 1
+  },
+  {
+   "fieldname": "max_out_of_pocket",
+   "fieldtype": "Currency",
+   "label": "Maximum Out of Pocket"
+  },
+  {
+   "fieldname": "approval_section",
+   "fieldtype": "Section Break",
+   "label": "Approval Settings"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_preapproval",
+   "fieldtype": "Check",
+   "label": "Requires Pre-approval"
+  },
+  {
+   "depends_on": "eval:doc.requires_preapproval==1",
+   "fieldname": "auto_approval_limit",
+   "fieldtype": "Currency",
+   "label": "Auto Approval Limit"
+  },
+  {
+   "fieldname": "column_break_approval",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.requires_preapproval==1",
+   "fieldname": "approval_validity_days",
+   "fieldtype": "Int",
+   "label": "Approval Validity (Days)"
+  },
+  {
+   "default": "Pending",
+   "depends_on": "eval:doc.requires_preapproval==1",
+   "fieldname": "default_approval_status",
+   "fieldtype": "Select",
+   "label": "Default Approval Status",
+   "options": "Pending\nApproved\nRejected"
+  },
+  {
+   "fieldname": "coverage_details_section",
+   "fieldtype": "Section Break",
+   "label": "Coverage Details"
+  },
+  {
+   "fieldname": "covered_items",
+   "fieldtype": "Table",
+   "label": "Covered Items",
+   "options": "Insurance Coverage Item"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Insurance Coverage",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [
+  {
+    "group": "Connections",
+    "link_doctype": "Patient",
+    "link_fieldname": "patient"
+  }
+ ],
+ "modified": "2024-03-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Insurance Coverage",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nursing User",
+   "share": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+} 

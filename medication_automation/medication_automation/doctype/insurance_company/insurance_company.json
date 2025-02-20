@@ -1,0 +1,185 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:company_name",
+ "creation": "2024-03-19 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company_details_section",
+  "company_name",
+  "customer",
+  "column_break_3",
+  "tax_id",
+  "status",
+  "contact_details_section",
+  "email",
+  "phone",
+  "column_break_9",
+  "address",
+  "website",
+  "claims_section",
+  "default_approval_validity_days",
+  "requires_preapproval",
+  "column_break_15",
+  "auto_approval_limit",
+  "default_approval_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "company_details_section",
+   "fieldtype": "Section Break",
+   "label": "Company Details"
+  },
+  {
+   "fieldname": "company_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Company Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "Link to Customer record for billing",
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "tax_id",
+   "fieldtype": "Data",
+   "label": "Tax ID"
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nInactive",
+   "reqd": 1
+  },
+  {
+   "fieldname": "contact_details_section",
+   "fieldtype": "Section Break",
+   "label": "Contact Details"
+  },
+  {
+   "fieldname": "email",
+   "fieldtype": "Data",
+   "label": "Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "phone",
+   "fieldtype": "Data",
+   "label": "Phone",
+   "options": "Phone"
+  },
+  {
+   "fieldname": "column_break_9",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "address",
+   "fieldtype": "Small Text",
+   "label": "Address"
+  },
+  {
+   "fieldname": "website",
+   "fieldtype": "Data",
+   "label": "Website",
+   "options": "URL"
+  },
+  {
+   "fieldname": "claims_section",
+   "fieldtype": "Section Break",
+   "label": "Claims Settings"
+  },
+  {
+   "default": "30",
+   "description": "Number of days approval remains valid",
+   "fieldname": "default_approval_validity_days",
+   "fieldtype": "Int",
+   "label": "Default Approval Validity (Days)"
+  },
+  {
+   "default": "0",
+   "fieldname": "requires_preapproval",
+   "fieldtype": "Check",
+   "label": "Requires Pre-approval"
+  },
+  {
+   "fieldname": "column_break_15",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.requires_preapproval==1",
+   "description": "Claims below this amount are auto-approved",
+   "fieldname": "auto_approval_limit",
+   "fieldtype": "Currency",
+   "label": "Auto Approval Limit"
+  },
+  {
+   "default": "Pending",
+   "depends_on": "eval:doc.requires_preapproval==1",
+   "fieldname": "default_approval_status",
+   "fieldtype": "Select",
+   "label": "Default Approval Status",
+   "options": "Pending\nApproved\nRejected"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [
+  {
+   "group": "Claims",
+   "link_doctype": "Insurance Claim",
+   "link_fieldname": "insurance_company"
+  },
+  {
+   "group": "Coverage",
+   "link_doctype": "Insurance Coverage",
+   "link_fieldname": "insurance_company"
+  }
+ ],
+ "modified": "2024-03-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Insurance Company",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Nursing User",
+   "share": 1
+  }
+ ],
+ "search_fields": "company_name,customer",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+} 

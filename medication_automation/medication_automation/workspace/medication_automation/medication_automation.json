@@ -1,0 +1,92 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"qoEXn9xTBl\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\">Medication Automation</span>\",\"col\":12}},{\"id\":\"sgIa5U9VHM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Insurance Claim\",\"col\":3}},{\"id\":\"evcynXjRSI\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Insurance Company\",\"col\":3}},{\"id\":\"idatg01bPS\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Insurance Coverage\",\"col\":3}},{\"id\":\"_sHj65OZ5b\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Insurance Card\",\"col\":3}},{\"id\":\"lKQ2IjFVib\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Nursing Handover\",\"col\":3}},{\"id\":\"jq5iEOy5NQ\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Nursing Shift\",\"col\":3}},{\"id\":\"ooBDrYfldt\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Medication Automation Settings\",\"col\":3}}]",
+ "creation": "2025-02-19 23:32:52.894703",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "idx": 0,
+ "indicator_color": "blue",
+ "is_hidden": 0,
+ "label": "Medication Automation",
+ "links": [],
+ "modified": "2025-02-20 00:22:56.727010",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Medication Automation",
+ "number_cards": [],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "Physician"
+  },
+  {
+   "role": "Nursing User"
+  }
+ ],
+ "sequence_id": 1.0,
+ "shortcuts": [
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Insurance Company",
+   "link_to": "Insurance Company",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Insurance Card",
+   "link_to": "Insurance Card",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Insurance Claim",
+   "link_to": "Insurance Claim",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Insurance Coverage",
+   "link_to": "Insurance Coverage",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Nursing Handover",
+   "link_to": "Nursing Handover",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Nursing Shift",
+   "link_to": "Nursing Shift",
+   "stats_filter": "[]",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Medication Automation Settings",
+   "link_to": "Medication Automation Settings",
+   "type": "DocType"
+  }
+ ],
+ "title": "Medication Automation"
+}

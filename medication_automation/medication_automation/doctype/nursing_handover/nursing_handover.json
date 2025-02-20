@@ -1,0 +1,275 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "format:NHAND-{from_shift}",
+ "creation": "2024-02-02 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "handover_details_section",
+  "from_shift",
+  "from_shift_type",
+  "from_date",
+  "column_break_handover",
+  "to_shift_type",
+  "to_date",
+  "service_unit",
+  "status_section",
+  "handover_status",
+  "handover_time",
+  "column_break_status",
+  "received_by",
+  "received_time",
+  "patient_details_section",
+  "critical_patients",
+  "column_break_patients",
+  "total_patients",
+  "stable_patients",
+  "medication_section",
+  "pending_medications",
+  "completed_medications_section",
+  "completed_medications",
+  "column_break_medications",
+  "missed_medications",
+  "next_medications",
+  "notes_section",
+  "clinical_notes",
+  "column_break_notes",
+  "administrative_notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "handover_details_section",
+   "fieldtype": "Section Break",
+   "label": "Handover Details"
+  },
+  {
+   "fieldname": "from_shift",
+   "fieldtype": "Link",
+   "label": "From Shift",
+   "options": "Nursing Shift",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "from_shift.shift_type",
+   "fieldname": "from_shift_type",
+   "fieldtype": "Link",
+   "label": "From Shift Type",
+   "options": "Shift Type",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "from_shift.shift_date",
+   "fieldname": "from_date",
+   "fieldtype": "Date",
+   "label": "From Date",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_handover",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "to_shift_type",
+   "fieldtype": "Link",
+   "label": "To Shift Type",
+   "options": "Shift Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "to_date",
+   "fieldtype": "Date",
+   "label": "To Date",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "from_shift.service_unit",
+   "fieldname": "service_unit",
+   "fieldtype": "Link",
+   "label": "Service Unit",
+   "options": "Healthcare Service Unit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_section",
+   "fieldtype": "Section Break",
+   "label": "Status"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "handover_status",
+   "fieldtype": "Select",
+   "label": "Handover Status",
+   "options": "Pending\nIn Progress\nCompleted",
+   "reqd": 1
+  },
+  {
+   "fieldname": "handover_time",
+   "fieldtype": "Datetime",
+   "label": "Handover Time",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_status",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "received_by",
+   "fieldtype": "Link",
+   "label": "Received By",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "received_time",
+   "fieldtype": "Datetime",
+   "label": "Received Time"
+  },
+  {
+   "fieldname": "patient_details_section",
+   "fieldtype": "Section Break",
+   "label": "Patient Details"
+  },
+  {
+   "fieldname": "critical_patients",
+   "fieldtype": "Table",
+   "label": "Critical Patients",
+   "options": "Critical Patient"
+  },
+  {
+   "fieldname": "column_break_patients",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_patients",
+   "fieldtype": "Int",
+   "label": "Total Patients",
+   "read_only": 1
+  },
+  {
+   "fieldname": "stable_patients",
+   "fieldtype": "Int",
+   "label": "Stable Patients",
+   "read_only": 1
+  },
+  {
+   "fieldname": "medication_section",
+   "fieldtype": "Section Break",
+   "label": "Medication Status"
+  },
+  {
+   "fieldname": "pending_medications",
+   "fieldtype": "Table",
+   "label": "Pending Medications",
+   "options": "Pending Medication Entry"
+  },
+  {
+   "fieldname": "completed_medications_section",
+   "fieldtype": "Section Break",
+   "label": "Completed Medications"
+  },
+  {
+   "fieldname": "completed_medications",
+   "fieldtype": "Table",
+   "label": "Completed Medications",
+   "options": "Completed Medication Entry"
+  },
+  {
+   "fieldname": "column_break_medications",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "missed_medications",
+   "fieldtype": "Table",
+   "label": "Missed Medications",
+   "options": "Missed Medication Entry"
+  },
+  {
+   "fieldname": "next_medications",
+   "fieldtype": "Table",
+   "label": "Next Shift Medications",
+   "options": "Next Shift Medication Entry"
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "clinical_notes",
+   "fieldtype": "Text Editor",
+   "label": "Clinical Notes"
+  },
+  {
+   "fieldname": "column_break_notes",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "administrative_notes",
+   "fieldtype": "Text Editor",
+   "label": "Administrative Notes"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Nursing Handover",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [
+  {
+   "group": "Shifts",
+   "link_doctype": "Nursing Shift",
+   "link_fieldname": "from_shift"
+  },
+  {
+   "group": "Patients",
+   "link_doctype": "Patient",
+   "link_fieldname": "patient"
+  },
+  {
+   "group": "Medications",
+   "link_doctype": "Inpatient Medication Entry",
+   "link_fieldname": "medication_entry"
+  }
+ ],
+ "modified": "2024-02-02 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Nursing Handover",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1,
+   "cancel": 1,
+   "amend": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Nursing User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+} 

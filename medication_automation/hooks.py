@@ -151,6 +151,30 @@ doctype_js = {
 doc_events = {
 	"Inpatient Medication Entry": {
 		"on_submit": "medication_automation.doc_events.on_submit_medication_entry"
+	},
+	"Sales Invoice": {
+		"validate": "medication_automation.doc_events.validate_sales_invoice"
+	},
+	"Lab Test": {
+		"on_submit": "medication_automation.doc_events.handle_billable_service"
+	},
+	"Clinical Procedure": {
+		"on_submit": "medication_automation.doc_events.handle_billable_service"
+	},
+	"Therapy Session": {
+		"on_submit": "medication_automation.doc_events.handle_billable_service"
+	},
+	"Patient Appointment": {
+		"on_submit": "medication_automation.doc_events.handle_billable_service"
+	},
+	"Vital Signs": {
+		"on_submit": "medication_automation.doc_events.handle_billable_service"
+	},
+	"Patient Encounter": {
+		"on_submit": "medication_automation.doc_events.handle_billable_service"
+	},
+	"Observation": {
+		"on_submit": "medication_automation.doc_events.handle_billable_service"
 	}
 }
 

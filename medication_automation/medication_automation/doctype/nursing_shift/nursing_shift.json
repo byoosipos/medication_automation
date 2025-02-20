@@ -1,0 +1,200 @@
+{
+ "actions": [],
+ "autoname": "format:NSHIFT-{service_unit}-{shift_date}-{shift_type}",
+ "creation": "2024-02-02 12:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "shift_details_section",
+  "shift_schedule",
+  "shift_type",
+  "shift_date",
+  "start_time",
+  "end_time",
+  "column_break_shift",
+  "service_unit",
+  "status",
+  "company",
+  "assigned_nurses_section",
+  "nurses",
+  "patients_section",
+  "patients",
+  "notes_section",
+  "handover_notes",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "shift_details_section",
+   "fieldtype": "Section Break",
+   "label": "Shift Details"
+  },
+  {
+   "fieldname": "shift_schedule",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Shift Schedule",
+   "options": "Shift Schedule",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "shift_schedule.shift_type",
+   "fieldname": "shift_type",
+   "fieldtype": "Link",
+   "label": "Shift Type",
+   "options": "Shift Type",
+   "read_only": 1
+  },
+  {
+   "fieldname": "shift_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Shift Date",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "shift_type.start_time",
+   "fieldname": "start_time",
+   "fieldtype": "Time",
+   "label": "Start Time",
+   "read_only": 1
+  },
+  {
+   "fetch_from": "shift_type.end_time",
+   "fieldname": "end_time",
+   "fieldtype": "Time",
+   "label": "End Time",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_shift",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "service_unit",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service Unit",
+   "options": "Healthcare Service Unit",
+   "reqd": 1
+  },
+  {
+   "default": "In Progress",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "In Progress\nClosed",
+   "allow_on_submit": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "assigned_nurses_section",
+   "fieldtype": "Section Break",
+   "label": "Assigned Nurses"
+  },
+  {
+   "fieldname": "nurses",
+   "fieldtype": "Table",
+   "label": "Assigned Nurses",
+   "options": "Nursing Shift Assignment"
+  },
+  {
+   "fieldname": "patients_section",
+   "fieldtype": "Section Break",
+   "label": "Patients"
+  },
+  {
+   "fieldname": "patients",
+   "fieldtype": "Table",
+   "label": "Patients",
+   "options": "Patient Entry"
+  },
+  {
+   "fieldname": "notes_section",
+   "fieldtype": "Section Break",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "handover_notes",
+   "fieldtype": "Text Editor",
+   "label": "Handover Notes",
+   "allow_on_submit": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Nursing Shift",
+   "print_hide": 1,
+   "read_only": 1
+  }
+ ],
+ "is_submittable": 1,
+ "links": [
+  {
+   "group": "Schedule",
+   "link_doctype": "Shift Schedule",
+   "link_fieldname": "name",
+   "table_fieldname": "shift_schedule"
+  },
+  {
+   "group": "Attendance",
+   "link_doctype": "Employee Checkin",
+   "link_fieldname": "shift"
+  },
+  {
+   "group": "Attendance",
+   "link_doctype": "Shift Assignment",
+   "link_fieldname": "shift_type"
+  },
+  {
+   "group": "Handover",
+   "link_doctype": "Nursing Handover",
+   "link_fieldname": "from_shift"
+  }
+ ],
+ "modified": "2024-02-20 12:00:00",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Nursing Shift",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "Nursing User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

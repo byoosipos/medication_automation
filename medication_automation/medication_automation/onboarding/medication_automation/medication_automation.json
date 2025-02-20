@@ -1,0 +1,57 @@
+{
+ "creation": "2024-03-19 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Module Onboarding",
+ "documentation_url": "",
+ "idx": 0,
+ "is_complete": 0,
+ "modified": "2024-03-19 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Medication Automation",
+ "name": "Medication Automation",
+ "owner": "Administrator",
+ "steps": [
+  {
+   "description": "Configure general settings for medication automation",
+   "fieldname": "settings",
+   "is_complete": 0,
+   "is_mandatory": 1,
+   "is_single": 1,
+   "is_skipped": 0,
+   "reference_document": "Medication Automation Settings",
+   "show_form_tour": 0,
+   "show_full_form": 0,
+   "step_title": "Configure Settings",
+   "title": "Configure Medication Automation Settings"
+  },
+  {
+   "description": "Set up nursing shifts for medication management",
+   "fieldname": "nursing_shift",
+   "is_complete": 0,
+   "is_mandatory": 1,
+   "is_single": 0,
+   "is_skipped": 0,
+   "reference_document": "Nursing Shift",
+   "show_form_tour": 1,
+   "show_full_form": 1,
+   "step_title": "Create Nursing Shift",
+   "title": "Set Up Nursing Shifts"
+  },
+  {
+   "description": "Configure insurance coverage for patients",
+   "fieldname": "insurance",
+   "is_complete": 0,
+   "is_mandatory": 1,
+   "is_single": 0,
+   "is_skipped": 0,
+   "reference_document": "Insurance Coverage",
+   "show_form_tour": 1,
+   "show_full_form": 1,
+   "step_title": "Set Up Insurance",
+   "title": "Configure Insurance Coverage"
+  }
+ ],
+ "subtitle": "Configure medication automation settings and set up required documents",
+ "success_message": "Medication Automation module is configured and ready to use",
+ "title": "Get Started with Medication Automation"
+} 
