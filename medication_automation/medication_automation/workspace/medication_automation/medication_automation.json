@@ -12,7 +12,7 @@
  "is_hidden": 0,
  "label": "Medication Automation",
  "links": [],
- "modified": "2025-02-20 00:22:56.727010",
+ "modified": "2025-02-24 22:08:45.003831",
  "modified_by": "Administrator",
  "module": "Medication Automation",
  "name": "Medication Automation",
@@ -21,6 +21,7 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
+ "restrict_to_domain": "Healthcare",
  "roles": [
   {
    "role": "System Manager"
