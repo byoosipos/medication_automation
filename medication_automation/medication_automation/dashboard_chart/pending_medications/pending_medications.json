@@ -1,1 +1,23 @@
- 
+{
+    "doctype": "Dashboard Chart",
+    "name": "Pending Medications",
+    "owner": "Administrator",
+    "docstatus": 0,
+    "creation": "2024-02-24 20:30:00.000000",
+    "modified": "2024-02-24 20:30:00.000000",
+    "modified_by": "Administrator",
+    "idx": 0,
+    "chart_name": "Pending Medications",
+    "chart_type": "Count",
+    "timeseries": 1,
+    "time_interval": "Daily",
+    "timespan": "Last Week",
+    "color": "#7cd6fd",
+    "filters_json": "{}",
+    "source": "DocType",
+    "document_type": "Pending Medication Entry",
+    "y_axis": [],
+    "is_public": 1,
+    "type": "Line",
+    "based_on": "creation"
+} 
