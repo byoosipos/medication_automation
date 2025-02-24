@@ -181,23 +181,15 @@ class NursingShift(Document):
         handover = frappe.get_doc({
             "doctype": "Nursing Handover",
             "from_shift": self.name,
-            "shift_type": next_shift_type,
-            "shift_date": next_shift_date,
+            "from_shift_type": self.shift_type,
+            "from_date": self.shift_date,
+            "to_shift_type": next_shift_type,
+            "to_date": next_shift_date,
             "service_unit": self.service_unit,
-            "handover_notes": self.handover_notes
+            "handover_notes": self.handover_notes or "",
+            "handover_status": "Pending",
+            "company": self.company
         })
         
-        # Copy patients - only those not completed
-        for patient in self.patients:
-            if patient.medication_status != "Completed":
-                handover.append("patients", {
-                    "patient": patient.patient,
-                    "patient_name": patient.patient_name,
-                    "patient_type": patient.patient_type,
-                    "bed": patient.bed,
-                    "condition": patient.condition,
-                    "medication_status": "Not Started",  # Reset status for new shift
-                    "special_instructions": patient.special_instructions
-                })
-            
-        handover.insert() 
+        handover.insert()
+        frappe.msgprint(f"Created handover document {handover.name}") 

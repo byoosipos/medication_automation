@@ -1,6 +1,6 @@
 import frappe
 from frappe.model.document import Document
-from frappe.utils import now_datetime
+from frappe.utils import now_datetime, add_days
 
 class NursingHandover(Document):
     def validate(self):
@@ -26,21 +26,9 @@ class NursingHandover(Document):
         self.from_shift_type = shift.shift_type
         self.from_date = shift.shift_date
         
-        # Set next shift type
+        # Set next shift type and date
         self.to_shift_type = "Night" if shift.shift_type == "Day" else "Day"
-        self.to_date = shift.shift_date
-        
-        # Copy completed medications from shift
-        self.completed_medications = []
-        for med in shift.completed_medications:
-            self.append("completed_medications", {
-                "patient": med.patient,
-                "patient_name": med.patient_name,
-                "medication": med.medication,
-                "dosage": med.dosage,
-                "time_given": med.time_given,
-                "given_by": med.given_by
-            })
+        self.to_date = add_days(shift.shift_date, 1) if shift.shift_type == "Night" else shift.shift_date
             
     def validate_service_unit(self):
         """Check if service unit is valid"""
@@ -66,17 +54,6 @@ class NursingHandover(Document):
                 "company": shift.company,
                 "status": "In Progress"
             })
-            
-            # Copy patients that need continued care
-            for patient in self.patients:
-                if patient.medication_status != "Completed":
-                    new_shift.append("patients", {
-                        "patient": patient.patient,
-                        "patient_name": patient.patient_name,
-                        "condition": patient.condition,
-                        "medication_status": "Not Started",  # Reset for new shift
-                        "special_instructions": patient.special_instructions
-                    })
                 
             new_shift.insert()
             frappe.msgprint(f"New {self.to_shift_type} shift created successfully")

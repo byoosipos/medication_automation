@@ -20,22 +20,8 @@
   "column_break_status",
   "received_by",
   "received_time",
-  "patient_details_section",
-  "critical_patients",
-  "column_break_patients",
-  "total_patients",
-  "stable_patients",
-  "medication_section",
-  "pending_medications",
-  "completed_medications_section",
-  "completed_medications",
-  "column_break_medications",
-  "missed_medications",
-  "next_medications",
   "notes_section",
-  "clinical_notes",
-  "column_break_notes",
-  "administrative_notes",
+  "handover_notes",
   "amended_from"
  ],
  "fields": [
@@ -71,17 +57,19 @@
    "fieldtype": "Column Break"
   },
   {
+   "fetch_from": "from_shift.shift_type",
    "fieldname": "to_shift_type",
    "fieldtype": "Link",
    "label": "To Shift Type",
    "options": "Shift Type",
-   "reqd": 1
+   "read_only": 1
   },
   {
+   "fetch_from": "from_shift.shift_date",
    "fieldname": "to_date",
    "fieldtype": "Date",
    "label": "To Date",
-   "reqd": 1
+   "read_only": 1
   },
   {
    "fetch_from": "from_shift.service_unit",
@@ -126,88 +114,14 @@
    "label": "Received Time"
   },
   {
-   "fieldname": "patient_details_section",
-   "fieldtype": "Section Break",
-   "label": "Patient Details"
-  },
-  {
-   "fieldname": "critical_patients",
-   "fieldtype": "Table",
-   "label": "Critical Patients",
-   "options": "Critical Patient"
-  },
-  {
-   "fieldname": "column_break_patients",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_patients",
-   "fieldtype": "Int",
-   "label": "Total Patients",
-   "read_only": 1
-  },
-  {
-   "fieldname": "stable_patients",
-   "fieldtype": "Int",
-   "label": "Stable Patients",
-   "read_only": 1
-  },
-  {
-   "fieldname": "medication_section",
-   "fieldtype": "Section Break",
-   "label": "Medication Status"
-  },
-  {
-   "fieldname": "pending_medications",
-   "fieldtype": "Table",
-   "label": "Pending Medications",
-   "options": "Pending Medication Entry"
-  },
-  {
-   "fieldname": "completed_medications_section",
-   "fieldtype": "Section Break",
-   "label": "Completed Medications"
-  },
-  {
-   "fieldname": "completed_medications",
-   "fieldtype": "Table",
-   "label": "Completed Medications",
-   "options": "Completed Medication Entry"
-  },
-  {
-   "fieldname": "column_break_medications",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "missed_medications",
-   "fieldtype": "Table",
-   "label": "Missed Medications",
-   "options": "Missed Medication Entry"
-  },
-  {
-   "fieldname": "next_medications",
-   "fieldtype": "Table",
-   "label": "Next Shift Medications",
-   "options": "Next Shift Medication Entry"
-  },
-  {
    "fieldname": "notes_section",
    "fieldtype": "Section Break",
    "label": "Notes"
   },
   {
-   "fieldname": "clinical_notes",
+   "fieldname": "handover_notes",
    "fieldtype": "Text Editor",
-   "label": "Clinical Notes"
-  },
-  {
-   "fieldname": "column_break_notes",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "administrative_notes",
-   "fieldtype": "Text Editor",
-   "label": "Administrative Notes"
+   "label": "Handover Notes"
   },
   {
    "fieldname": "amended_from",
@@ -225,16 +139,6 @@
    "group": "Shifts",
    "link_doctype": "Nursing Shift",
    "link_fieldname": "from_shift"
-  },
-  {
-   "group": "Patients",
-   "link_doctype": "Patient",
-   "link_fieldname": "patient"
-  },
-  {
-   "group": "Medications",
-   "link_doctype": "Inpatient Medication Entry",
-   "link_fieldname": "medication_entry"
   }
  ],
  "modified": "2024-02-02 12:00:00.000000",

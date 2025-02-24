@@ -509,16 +509,36 @@ def handle_billable_service(doc, method):
             frappe.throw(_("Error processing Observation. Please check error logs."))
             
     elif doc.doctype == "Clinical Procedure":
-        template = frappe.get_doc("Clinical Procedure Template", doc.procedure_template)
-        if template.is_billable:
-            billable_items.append({
-                "item_code": template.item,
-                "item_name": template.procedure_name,
-                "qty": 1,
-                "rate": template.procedure_rate,
-                "reference_dt": "Clinical Procedure",
-                "reference_dn": doc.name
-            })
+        try:
+            if not doc.procedure_template:
+                frappe.throw(_("Clinical Procedure Template is required for billing"))
+                
+            # First check if template exists
+            if not frappe.db.exists("Clinical Procedure Template", doc.procedure_template):
+                frappe.throw(_("Clinical Procedure Template {0} not found").format(doc.procedure_template))
+                
+            template = frappe.get_doc("Clinical Procedure Template", doc.procedure_template)
+            if template.is_billable:
+                if not template.item:
+                    frappe.throw(_("No billing item linked to Clinical Procedure Template {0}").format(template.name))
+                    
+                # Verify item exists
+                if not frappe.db.exists("Item", template.item):
+                    frappe.throw(_("Billing Item {0} not found").format(template.item))
+                    
+                billable_items.append({
+                    "item_code": template.item,
+                    "item_name": template.name,
+                    "qty": 1,
+                    "rate": template.rate or 0,
+                    "reference_dt": "Clinical Procedure",
+                    "reference_dn": doc.name
+                })
+        except frappe.DoesNotExistError as e:
+            frappe.throw(_("Error: {0}").format(str(e)))
+        except Exception as e:
+            frappe.log_error(f"Error processing Clinical Procedure {doc.name}: {str(e)}")
+            frappe.throw(_("Error processing Clinical Procedure. Please check error logs."))
             
     elif doc.doctype == "Therapy Session":
         therapy_type = frappe.get_doc("Therapy Type", doc.therapy_type)
@@ -618,85 +638,88 @@ def handle_billable_service(doc, method):
             else:
                 non_insured_items.append(item)
 
-        # For non-insured items, check if invoice exists
+        # For non-insured items, create invoice
         if non_insured_items:
-            # Check for existing invoice reference
-            if not doc.custom_sales_invoice:
-                items_list = ", ".join([item["item_name"] for item in non_insured_items])
-                frappe.throw(_(
-                    "The following items are not covered by insurance and require direct payment: {0}. "
-                    "Please create a Sales Invoice first before submitting this {1}."
-                ).format(items_list, doc.doctype))
+            create_sales_invoice(doc, non_insured_items, service_date)
 
         # Handle insured items
         if insured_items:
-            # Create or update draft claim
-            existing_claim = frappe.get_all(
-                "Insurance Claim",
-                filters={
-                    "insurance_coverage": insurance_doc.name,
-                    "patient": doc.patient,
-                    "claim_date": service_date,
-                    "docstatus": 0  # Draft status
-                },
-                limit=1
-            )
-
-            if existing_claim:
-                claim = frappe.get_doc("Insurance Claim", existing_claim[0].name)
-            else:
-                claim = frappe.new_doc("Insurance Claim")
-                claim.insurance_coverage = insurance_doc.name
-                claim.patient = doc.patient
-                claim.claim_date = service_date
-                claim.company = doc.company
-
-            # Add items to claim
-            for item in insured_items:
-                claim.append("items", {
-                    "item_code": item["item_code"],
-                    "item_name": item["item_name"],
-                    "amount": item["qty"] * item["rate"],
-                    "reference_dt": item["reference_dt"],
-                    "reference_dn": item["reference_dn"]
-                })
-
-            if not existing_claim:
-                claim.insert()
-            else:
-                claim.save()
-
-            frappe.msgprint(_("Added covered items to insurance claim {0}").format(claim.name))
+            create_insurance_claim(doc, insurance_doc, insured_items, service_date)
 
     else:
         # No active insurance - create direct invoice for all items
-        customer = frappe.db.get_value("Patient", doc.patient, "customer")
-        if not customer:
-            frappe.throw(_("No customer linked to patient {0}").format(doc.patient))
+        create_sales_invoice(doc, billable_items, service_date)
 
-        invoice = frappe.new_doc("Sales Invoice")
-        invoice.patient = doc.patient
-        invoice.customer = customer
-        invoice.company = doc.company
-        invoice.posting_date = service_date
-        invoice.due_date = service_date
+def create_sales_invoice(doc, items, posting_date):
+    """Create sales invoice for non-insured items"""
+    customer = frappe.db.get_value("Patient", doc.patient, "customer")
+    if not customer:
+        frappe.throw(_("No customer linked to patient {0}").format(doc.patient))
 
-        for item in billable_items:
-            invoice.append("items", {
-                "item_code": item["item_code"],
-                "item_name": item["item_name"],
-                "qty": item["qty"],
-                "rate": item["rate"],
-                "reference_dt": item["reference_dt"],
-                "reference_dn": item["reference_dn"]
-            })
+    invoice = frappe.new_doc("Sales Invoice")
+    invoice.patient = doc.patient
+    invoice.customer = customer
+    invoice.company = doc.company
+    invoice.posting_date = posting_date
+    invoice.due_date = posting_date
 
-        invoice.set_missing_values()
-        invoice.set_taxes()
-        invoice.insert()
-        invoice.submit()
-        
-        # Link the invoice to the service document
+    for item in items:
+        invoice.append("items", {
+            "item_code": item["item_code"],
+            "item_name": item["item_name"],
+            "qty": item["qty"],
+            "rate": item["rate"],
+            "reference_dt": item["reference_dt"],
+            "reference_dn": item["reference_dn"]
+        })
+
+    invoice.set_missing_values()
+    invoice.set_taxes()
+    invoice.insert()
+    invoice.submit()
+    
+    # Link the invoice to the service document if custom field exists
+    if hasattr(doc, 'custom_sales_invoice'):
         frappe.db.set_value(doc.doctype, doc.name, "custom_sales_invoice", invoice.name)
-        
-        frappe.msgprint(_("Created sales invoice {0} for billable items").format(invoice.name)) 
+    
+    frappe.msgprint(_("Created sales invoice {0} for billable items").format(invoice.name))
+
+def create_insurance_claim(doc, insurance_doc, items, service_date):
+    """Create or update insurance claim for insured items"""
+    # Check for existing open claim for the day
+    existing_claim = frappe.get_all(
+        "Insurance Claim",
+        filters={
+            "insurance_coverage": insurance_doc.name,
+            "patient": doc.patient,
+            "claim_date": service_date,
+            "docstatus": 0  # Draft status
+        },
+        limit=1
+    )
+
+    if existing_claim:
+        claim = frappe.get_doc("Insurance Claim", existing_claim[0].name)
+    else:
+        claim = frappe.new_doc("Insurance Claim")
+        claim.insurance_coverage = insurance_doc.name
+        claim.patient = doc.patient
+        claim.claim_date = service_date
+        claim.company = doc.company
+
+    # Add items to claim
+    for item in items:
+        claim.append("items", {
+            "item_code": item["item_code"],
+            "item_name": item["item_name"],
+            "amount": item["qty"] * item["rate"],
+            "reference_dt": item["reference_dt"],
+            "reference_dn": item["reference_dn"]
+        })
+
+    if not existing_claim:
+        claim.insert()
+    else:
+        claim.save()
+
+    frappe.msgprint(_("Added covered items to insurance claim {0}").format(claim.name)) 
