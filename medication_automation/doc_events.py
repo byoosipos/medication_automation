@@ -470,6 +470,10 @@ def handle_billable_service(doc, method):
                     "reference_dt": "Lab Test",
                     "reference_dn": doc.name
                 })
+                
+            # Create stock entry for consumables if any
+            create_lab_consumables_stock_entry(doc)
+                
         except frappe.DoesNotExistError as e:
             frappe.throw(_("Error: {0}").format(str(e)))
         except Exception as e:
@@ -722,4 +726,46 @@ def create_insurance_claim(doc, insurance_doc, items, service_date):
     else:
         claim.save()
 
-    frappe.msgprint(_("Added covered items to insurance claim {0}").format(claim.name)) 
+    frappe.msgprint(_("Added covered items to insurance claim {0}").format(claim.name))
+
+def create_lab_consumables_stock_entry(doc):
+    """Create stock entry for lab test consumables"""
+    if not hasattr(doc, 'custom_consumables') or not doc.custom_consumables:
+        return
+        
+    # Check if any consumables have warehouse specified
+    has_consumables_with_warehouse = False
+    for item in doc.custom_consumables:
+        if item.warehouse:
+            has_consumables_with_warehouse = True
+            break
+            
+    if not has_consumables_with_warehouse:
+        return
+        
+    stock_entry = frappe.new_doc("Stock Entry")
+    stock_entry.stock_entry_type = "Material Issue"
+    stock_entry.company = doc.company
+    stock_entry.posting_date = frappe.utils.today()
+    stock_entry.purpose = "Material Issue"
+    stock_entry.reference_doctype = doc.doctype
+    stock_entry.reference_docname = doc.name
+    
+    for item in doc.custom_consumables:
+        if not item.warehouse:
+            continue
+            
+        stock_entry.append("items", {
+            "item_code": item.item,
+            "qty": item.qty,
+            "uom": item.uom,
+            "s_warehouse": item.warehouse,
+            "allow_zero_valuation_rate": 1
+        })
+    
+    if stock_entry.items:
+        stock_entry.insert()
+        stock_entry.submit()
+        frappe.msgprint(_("Stock Entry {0} created for consumables").format(
+            frappe.bold(stock_entry.name)
+        )) 

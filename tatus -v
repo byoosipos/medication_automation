@@ -1,0 +1,65 @@
+[1mdiff --git a/medication_automation/doc_events.py b/medication_automation/doc_events.py[m
+[1mindex 4d67060..6669613 100644[m
+[1m--- a/medication_automation/doc_events.py[m
+[1m+++ b/medication_automation/doc_events.py[m
+[36m@@ -470,6 +470,10 @@[m [mdef handle_billable_service(doc, method):[m
+                     "reference_dt": "Lab Test",[m
+                     "reference_dn": doc.name[m
+                 })[m
+[32m+[m[41m                [m
+[32m+[m[32m            # Create stock entry for consumables if any[m
+[32m+[m[32m            create_lab_consumables_stock_entry(doc)[m
+[32m+[m[41m                [m
+         except frappe.DoesNotExistError as e:[m
+             frappe.throw(_("Error: {0}").format(str(e)))[m
+         except Exception as e:[m
+[36m@@ -722,4 +726,46 @@[m [mdef create_insurance_claim(doc, insurance_doc, items, service_date):[m
+     else:[m
+         claim.save()[m
+ [m
+[31m-    frappe.msgprint(_("Added covered items to insurance claim {0}").format(claim.name)) [m
+\ No newline at end of file[m
+[32m+[m[32m    frappe.msgprint(_("Added covered items to insurance claim {0}").format(claim.name))[m
+[32m+[m
+[32m+[m[32mdef create_lab_consumables_stock_entry(doc):[m
+[32m+[m[32m    """Create stock entry for lab test consumables"""[m
+[32m+[m[32m    if not hasattr(doc, 'custom_consumables') or not doc.custom_consumables:[m
+[32m+[m[32m        return[m
+[32m+[m[41m        [m
+[32m+[m[32m    # Check if any consumables have warehouse specified[m
+[32m+[m[32m    has_consumables_with_warehouse = False[m
+[32m+[m[32m    for item in doc.custom_consumables:[m
+[32m+[m[32m        if item.warehouse:[m
+[32m+[m[32m            has_consumables_with_warehouse = True[m
+[32m+[m[32m            break[m
+[32m+[m[41m            [m
+[32m+[m[32m    if not has_consumables_with_warehouse:[m
+[32m+[m[32m        return[m
+[32m+[m[41m        [m
+[32m+[m[32m    stock_entry = frappe.new_doc("Stock Entry")[m
+[32m+[m[32m    stock_entry.stock_entry_type = "Material Issue"[m
+[32m+[m[32m    stock_entry.company = doc.company[m
+[32m+[m[32m    stock_entry.posting_date = frappe.utils.today()[m
+[32m+[m[32m    stock_entry.purpose = "Material Issue"[m
+[32m+[m[32m    stock_entry.reference_doctype = doc.doctype[m
+[32m+[m[32m    stock_entry.reference_docname = doc.name[m
+[32m+[m[41m    [m
+[32m+[m[32m    for item in doc.custom_consumables:[m
+[32m+[m[32m        if not item.warehouse:[m
+[32m+[m[32m            continue[m
+[32m+[m[41m            [m
+[32m+[m[32m        stock_entry.append("items", {[m
+[32m+[m[32m            "item_code": item.item,[m
+[32m+[m[32m            "qty": item.qty,[m
+[32m+[m[32m            "uom": item.uom,[m
+[32m+[m[32m            "s_warehouse": item.warehouse,[m
+[32m+[m[32m            "allow_zero_valuation_rate": 1[m
+[32m+[m[32m        })[m
+[32m+[m[41m    [m
+[32m+[m[32m    if stock_entry.items:[m
+[32m+[m[32m        stock_entry.insert()[m
+[32m+[m[32m        stock_entry.submit()[m
+[32m+[m[32m        frappe.msgprint(_("Stock Entry {0} created for consumables").format([m
+[32m+[m[32m            frappe.bold(stock_entry.name)[m
+[32m+[m[32m        ))[m[41m [m
+\ No newline at end of file[m
