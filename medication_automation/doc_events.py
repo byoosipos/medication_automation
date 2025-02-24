@@ -816,4 +816,48 @@ def create_observation_consumables_stock_entry(doc):
         stock_entry.submit()
         frappe.msgprint(_("Stock Entry {0} created for observation consumables").format(
             frappe.bold(stock_entry.name)
-        )) 
+        ))
+
+@frappe.whitelist()
+def get_batch_query(doctype, txt, searchfield, start, page_len, filters):
+    """Get query for batch selection based on item and warehouse"""
+    if not filters.get('item'):
+        return []
+        
+    item_code = filters.get('item')
+    warehouse = filters.get('warehouse')
+    
+    query_filters = {
+        'item': item_code,
+        'batch_qty': ['>', 0]
+    }
+    
+    if warehouse:
+        # Get batches with stock in the specified warehouse
+        batch_list = frappe.db.sql("""
+            SELECT DISTINCT sle.batch_no
+            FROM `tabStock Ledger Entry` sle
+            INNER JOIN `tabBatch` batch ON sle.batch_no = batch.name
+            WHERE sle.item_code = %(item)s
+                AND sle.warehouse = %(warehouse)s
+                AND sle.batch_no IS NOT NULL
+                AND sle.batch_no != ''
+                AND batch.disabled = 0
+            GROUP BY sle.batch_no
+            HAVING sum(sle.actual_qty) > 0
+        """, {'item': item_code, 'warehouse': warehouse})
+        
+        if batch_list:
+            query_filters['name'] = ['in', [b[0] for b in batch_list]]
+    
+    # Add text search condition if provided
+    if txt:
+        query_filters['name'] = ['like', f'%{txt}%']
+    
+    return frappe.get_all('Batch',
+        filters=query_filters,
+        fields=['name'],
+        start=start,
+        page_length=page_len,
+        as_list=1
+    ) 
