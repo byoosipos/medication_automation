@@ -9,7 +9,8 @@
   "item",
   "qty",
   "uom",
-  "warehouse"
+  "warehouse",
+  "batch_no"
  ],
  "fields": [
   {
@@ -39,6 +40,14 @@
    "in_list_view": 1,
    "label": "Warehouse",
    "options": "Warehouse"
+  },
+  {
+   "fieldname": "batch_no",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Batch No",
+   "options": "Batch",
+   "depends_on": "eval:doc.item && frappe.db.get_value('Item', doc.item, 'has_batch_no')"
   }
  ],
  "index_web_pages_for_search": 1,

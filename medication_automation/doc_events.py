@@ -764,6 +764,7 @@ def create_lab_consumables_stock_entry(doc):
             "qty": item.qty,
             "uom": item.uom,
             "s_warehouse": item.warehouse,
+            "batch_no": item.batch_no if hasattr(item, 'batch_no') else None,
             "allow_zero_valuation_rate": 1
         })
     
@@ -806,6 +807,7 @@ def create_observation_consumables_stock_entry(doc):
             "qty": item.qty,
             "uom": item.uom,
             "s_warehouse": item.warehouse,
+            "batch_no": item.batch_no if hasattr(item, 'batch_no') else None,
             "allow_zero_valuation_rate": 1
         })
     
