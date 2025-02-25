@@ -820,37 +820,51 @@ def get_batch_query(doctype, txt, searchfield, start, page_len, filters):
     item_code = filters.get('item')
     warehouse = filters.get('warehouse')
     
-    query_filters = {
-        'item': item_code,
-        'batch_qty': ['>', 0]
-    }
+    # If warehouse is not selected, we can't filter by stock
+    if not warehouse:
+        return frappe.get_all('Batch',
+            filters={
+                'item': item_code,
+                'batch_qty': ['>', 0],
+                'disabled': 0,
+                'name': ['like', f'%{txt}%'] if txt else ['!=', '']
+            },
+            fields=['name'],
+            start=start,
+            page_length=page_len,
+            as_list=1
+        )
     
-    if warehouse:
-        # Get batches with stock in the specified warehouse
-        batch_list = frappe.db.sql("""
-            SELECT DISTINCT sle.batch_no
-            FROM `tabStock Ledger Entry` sle
-            INNER JOIN `tabBatch` batch ON sle.batch_no = batch.name
-            WHERE sle.item_code = %(item)s
-                AND sle.warehouse = %(warehouse)s
-                AND sle.batch_no IS NOT NULL
-                AND sle.batch_no != ''
-                AND batch.disabled = 0
-            GROUP BY sle.batch_no
-            HAVING sum(sle.actual_qty) > 0
-        """, {'item': item_code, 'warehouse': warehouse})
-        
-        if batch_list:
-            query_filters['name'] = ['in', [b[0] for b in batch_list]]
+    # Get batches with stock in the specified warehouse
+    batch_list = frappe.db.sql("""
+        SELECT 
+            DISTINCT sle.batch_no,
+            SUM(sle.actual_qty) as available_qty
+        FROM 
+            `tabStock Ledger Entry` sle
+        INNER JOIN 
+            `tabBatch` batch ON sle.batch_no = batch.name
+        WHERE 
+            sle.item_code = %(item)s
+            AND sle.warehouse = %(warehouse)s
+            AND sle.batch_no IS NOT NULL
+            AND sle.batch_no != ''
+            AND batch.disabled = 0
+            AND (sle.batch_no LIKE %(txt)s OR %(txt)s = '')
+        GROUP BY 
+            sle.batch_no
+        HAVING 
+            SUM(sle.actual_qty) > 0
+        ORDER BY 
+            batch.expiry_date ASC, available_qty DESC
+        LIMIT 
+            %(start)s, %(page_len)s
+    """, {
+        'item': item_code, 
+        'warehouse': warehouse,
+        'txt': f"%{txt}%" if txt else "",
+        'start': start,
+        'page_len': page_len
+    }, as_dict=0)
     
-    # Add text search condition if provided
-    if txt:
-        query_filters['name'] = ['like', f'%{txt}%']
-    
-    return frappe.get_all('Batch',
-        filters=query_filters,
-        fields=['name'],
-        start=start,
-        page_length=page_len,
-        as_list=1
-    ) 
+    return batch_list 
