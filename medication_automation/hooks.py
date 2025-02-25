@@ -33,7 +33,8 @@ app_license = "MIT"
 # app_include_css = "/assets/medication_automation/css/medication_automation.css"
 app_include_js = [
 	"/assets/medication_automation/js/patient_encounter.js",
-	"/assets/medication_automation/js/stock_entry.js"
+	"/assets/medication_automation/js/stock_entry.js",
+	"/assets/medication_automation/js/lab_consumables.js"
 ]
 
 # include js, css files in header of web template
@@ -53,7 +54,9 @@ app_include_js = [
 # include js in doctype views
 doctype_js = {
 	"Patient Encounter": "public/js/patient_encounter.js",
-	"Stock Entry": "public/js/stock_entry.js"
+	"Stock Entry": "public/js/stock_entry.js",
+	"Lab Test": "public/js/lab_consumables.js",
+	"Observation": "public/js/lab_consumables.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
