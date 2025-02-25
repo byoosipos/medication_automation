@@ -585,16 +585,8 @@ def handle_billable_service(doc, method):
             })
             
     elif doc.doctype == "Vital Signs":
-        if doc.billing_item:
-            rate = frappe.db.get_value("Item", doc.billing_item, "standard_rate") or 0
-            billable_items.append({
-                "item_code": doc.billing_item,
-                "item_name": frappe.db.get_value("Item", doc.billing_item, "item_name"),
-                "qty": 1,
-                "rate": rate,
-                "reference_dt": "Vital Signs",
-                "reference_dn": doc.name
-            })
+        # Skip billing for Vital Signs
+        return
 
     if not billable_items:  # If no billable items found, return early
         return
