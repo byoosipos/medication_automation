@@ -203,8 +203,7 @@ scheduler_events = {
 # ------------------------------
 #
 override_whitelisted_methods = {
-	"frappe.desk.doctype.event.event.get_events": "medication_automation.event.get_events",
-	"PatientEncounter.get_encounter_details": "medication_automation.patient_encounter_patch.get_encounter_details"
+	"PatientEncounter.get_encounter_details": "medication_automation.medication_automation.patient_encounter_patch.get_encounter_details"
 }
 #
 
