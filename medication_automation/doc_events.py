@@ -573,7 +573,8 @@ def handle_billable_service(doc, method):
             })
             
     elif doc.doctype == "Patient Encounter":
-        if doc.billing_item:
+        # Check if billing_item attribute exists before using it
+        if hasattr(doc, 'billing_item') and doc.billing_item:
             rate = frappe.db.get_value("Item", doc.billing_item, "standard_rate") or 0
             billable_items.append({
                 "item_code": doc.billing_item,
