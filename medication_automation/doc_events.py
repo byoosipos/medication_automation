@@ -446,6 +446,20 @@ def handle_billable_service(doc, method):
     
     if doc.doctype == "Lab Test":
         try:
+            # Check if this Lab Test is already referenced in a Sales Invoice
+            existing_invoice = frappe.db.exists("Sales Invoice Item", {
+                "reference_dt": "Lab Test",
+                "reference_dn": doc.name,
+                "docstatus": 1  # Submitted invoice
+            })
+            
+            # If already invoiced, skip billing but still process consumables
+            if existing_invoice:
+                frappe.msgprint(_("The Lab Test {0} is already invoiced. Skipping invoice creation.").format(doc.name))
+                # Still create stock entry for consumables if any
+                create_lab_consumables_stock_entry(doc)
+                return
+                
             if not doc.template:
                 frappe.throw(_("Lab Test Template is required for billing"))
                 
@@ -482,6 +496,20 @@ def handle_billable_service(doc, method):
             
     elif doc.doctype == "Observation":
         try:
+            # Check if this Observation is already referenced in a Sales Invoice
+            existing_invoice = frappe.db.exists("Sales Invoice Item", {
+                "reference_dt": "Observation",
+                "reference_dn": doc.name,
+                "docstatus": 1  # Submitted invoice
+            })
+            
+            # If already invoiced, skip billing but still process consumables
+            if existing_invoice:
+                frappe.msgprint(_("The Observation {0} is already invoiced. Skipping invoice creation.").format(doc.name))
+                # Still create stock entry for consumables if any
+                create_observation_consumables_stock_entry(doc)
+                return
+            
             if not doc.observation_template:
                 frappe.throw(_("Observation Template is required for billing"))
                 
@@ -518,6 +546,18 @@ def handle_billable_service(doc, method):
             
     elif doc.doctype == "Clinical Procedure":
         try:
+            # Check if this procedure is already referenced in a Sales Invoice
+            existing_invoice = frappe.db.exists("Sales Invoice Item", {
+                "reference_dt": "Clinical Procedure",
+                "reference_dn": doc.name,
+                "docstatus": 1  # Submitted invoice
+            })
+            
+            # If already invoiced, skip billing
+            if existing_invoice:
+                frappe.msgprint(_("The Clinical Procedure {0} is already invoiced. Skipping invoice creation.").format(doc.name))
+                return
+                
             if not doc.procedure_template:
                 frappe.throw(_("Clinical Procedure Template is required for billing"))
                 
@@ -549,6 +589,18 @@ def handle_billable_service(doc, method):
             frappe.throw(_("Error processing Clinical Procedure. Please check error logs."))
             
     elif doc.doctype == "Therapy Session":
+        # Check if this therapy session is already referenced in a Sales Invoice
+        existing_invoice = frappe.db.exists("Sales Invoice Item", {
+            "reference_dt": "Therapy Session",
+            "reference_dn": doc.name,
+            "docstatus": 1  # Submitted invoice
+        })
+        
+        # If already invoiced, skip billing
+        if existing_invoice:
+            frappe.msgprint(_("The Therapy Session {0} is already invoiced. Skipping invoice creation.").format(doc.name))
+            return
+            
         therapy_type = frappe.get_doc("Therapy Type", doc.therapy_type)
         if therapy_type.is_billable:
             billable_items.append({
@@ -561,6 +613,18 @@ def handle_billable_service(doc, method):
             })
             
     elif doc.doctype == "Patient Appointment":
+        # Check if this appointment is already referenced in a Sales Invoice
+        existing_invoice = frappe.db.exists("Sales Invoice Item", {
+            "reference_dt": "Patient Appointment",
+            "reference_dn": doc.name,
+            "docstatus": 1  # Submitted invoice
+        })
+        
+        # If already invoiced, skip billing
+        if existing_invoice:
+            frappe.msgprint(_("The Patient Appointment {0} is already invoiced. Skipping invoice creation.").format(doc.name))
+            return
+            
         if doc.billing_item:
             rate = frappe.db.get_value("Item", doc.billing_item, "standard_rate") or 0
             billable_items.append({
@@ -573,6 +637,18 @@ def handle_billable_service(doc, method):
             })
             
     elif doc.doctype == "Patient Encounter":
+        # Check if this encounter is already referenced in a Sales Invoice
+        existing_invoice = frappe.db.exists("Sales Invoice Item", {
+            "reference_dt": "Patient Encounter",
+            "reference_dn": doc.name,
+            "docstatus": 1  # Submitted invoice
+        })
+        
+        # If already invoiced, skip billing
+        if existing_invoice:
+            frappe.msgprint(_("The Patient Encounter {0} is already invoiced. Skipping invoice creation.").format(doc.name))
+            return
+            
         # Check if billing_item attribute exists before using it
         if hasattr(doc, 'billing_item') and doc.billing_item:
             rate = frappe.db.get_value("Item", doc.billing_item, "standard_rate") or 0
