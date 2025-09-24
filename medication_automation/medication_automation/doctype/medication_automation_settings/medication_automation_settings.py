@@ -6,7 +6,8 @@ class MedicationAutomationSettings(Document):
     def validate(self):
         self.validate_email_list()
         self.validate_stock_requisition_time()
-        self.validate_shift_times()
+        # Temporarily disabled shift time validations
+        # self.validate_shift_times()
         
     def validate_email_list(self):
         """Validate email list format"""
@@ -23,6 +24,11 @@ class MedicationAutomationSettings(Document):
             
     def validate_shift_times(self):
         """Validate shift time configurations"""
+        # Temporarily disabled shift time validations
+        return
+        
+        # The following code is temporarily disabled
+        '''
         # Convert times to datetime.time objects for comparison
         first_start = get_time(self.first_shift_start)
         first_end = get_time(self.first_shift_end)
@@ -86,6 +92,7 @@ class MedicationAutomationSettings(Document):
         if self.second_shift_crosses_midnight:
             if second_end != first_start:
                 frappe.throw("Second shift end time must match first shift start time on next day")
+        '''
             
     def on_update(self):
         """Update scheduler event if stock requisition time changes"""

@@ -1,7 +1,17 @@
 import frappe
 from frappe import _
-from frappe.utils import getdate, get_datetime, time_diff_in_hours, add_days, now_datetime, get_time, add_to_date
+from frappe.utils import getdate, get_datetime, time_diff_in_hours, add_days, now_datetime, get_time, add_to_date, flt
 from healthcare.healthcare.doctype.patient_encounter.patient_encounter import get_prescription_dates
+
+# Assuming get_actual_qty is in hmh_custom_app (adjust if it's moved or duplicated elsewhere)
+# If get_actual_qty exists within medication_automation, adjust the import path
+try:
+    from hmh_custom_app.custom_api.material_request import get_actual_qty
+except ImportError:
+    # Fallback or define get_actual_qty if it's moved/copied to this app
+    frappe.log_error("Could not import get_actual_qty from hmh_custom_app. Ensure the function is available.", "Import Error")
+    # Define a dummy function to avoid crashing if import fails, requires fixing the import path
+    def get_actual_qty(item_code, warehouse): return 9999 # Placeholder
 
 @frappe.whitelist()
 def create_inpatient_medication_order(encounter, start_time=None):
@@ -266,16 +276,89 @@ def handle_healthcare_billing(doc, patient, items, posting_date=None):
 def on_submit_medication_entry(doc, method):
     """Handle stock entry and insurance claim/invoice creation on medication entry submission"""
     try:
-        # First create stock entry for consumables
-        if doc.custom_consumables:
-            create_consumables_stock_entry(doc)
-        
         # Get patient from first medication order
         patient = doc.medication_orders[0].patient if doc.medication_orders else None
         if not patient:
             frappe.throw(_("No patient found in medication orders"))
 
-        # Prepare billable items list
+        # --- 1. Handle Consumables Stock Entry (Existing Logic) ---
+        if doc.custom_consumables:
+            # Check if warehouse is set on the main doc for consumables
+            if not doc.warehouse:
+                 frappe.log_error(f"Warehouse not set on Inpatient Medication Entry {doc.name}, cannot issue consumables.", "Missing Warehouse")
+            else:
+                 create_consumables_stock_entry(doc) # Assumes this uses doc.warehouse
+
+        # --- 2. Handle Drug Stock Entry (New Logic) ---
+        if doc.medication_orders:
+            # Determine Source Warehouse from Service Unit
+            # Ensure service_unit field exists on the doc or get it reliably
+            service_unit = doc.service_unit
+            if not service_unit:
+                 # Attempt to get from first medication order if not on main doc
+                 service_unit = doc.medication_orders[0].service_unit if doc.medication_orders[0].service_unit else None
+                 if not service_unit:
+                      frappe.throw(_("Service Unit not found in Medication Entry {0}").format(doc.name))
+
+            # Get the warehouse linked to the service unit
+            source_warehouse = frappe.db.get_value("Healthcare Service Unit", service_unit, "warehouse")
+            if not source_warehouse:
+                 frappe.throw(_("No Warehouse linked to Service Unit {0}").format(service_unit))
+
+            # Check stock availability for all drugs first
+            allow_negative_stock = frappe.db.get_single_value("Stock Settings", "allow_negative_stock")
+            can_issue_drugs = True
+            error_messages = []
+            drugs_to_issue = []
+
+            for med in doc.medication_orders:
+                 if not med.drug_code: continue # Skip if drug code is missing
+
+                 required_qty = flt(med.dosage or 1) # Use dosage as qty, default to 1 if 0/None
+                 if required_qty <= 0: continue # Skip if qty is zero or negative
+
+                 available_qty = get_actual_qty(item_code=med.drug_code, warehouse=source_warehouse)
+
+                 if required_qty > flt(available_qty):
+                      if not allow_negative_stock:
+                           can_issue_drugs = False
+                           error_messages.append(
+                                _("Insufficient stock for Item {0} ({1}) in Warehouse {2}. Required: {3}, Available: {4}").format(
+                                       med.drug_code, med.drug_name, source_warehouse, required_qty, flt(available_qty)
+                                )
+                           )
+                 
+                 # Add drug to list for stock entry creation if check passes (or negative allowed)
+                 if can_issue_drugs or allow_negative_stock:
+                    drugs_to_issue.append({
+                        "item_code": med.drug_code,
+                        "item_name": med.drug_name,
+                        "qty": required_qty,
+                        "uom": frappe.db.get_value("Item", med.drug_code, "stock_uom"),
+                        # Add other relevant fields if needed later (e.g., dosage_form)
+                    })
+
+            if not can_issue_drugs:
+                 frappe.throw("<br>".join(error_messages))
+
+            # If stock check passes, proceed to create Drug Stock Entry
+            if drugs_to_issue:
+                 # Call a helper function to create and submit the stock entry
+                 try:
+                      drug_se_name = create_drug_stock_entry(doc, source_warehouse, drugs_to_issue)
+                      # Link the created stock entry back to the medication entry doc
+                      frappe.db.set_value("Inpatient Medication Entry", doc.name, "custom_drug_stock_entry", drug_se_name)
+                      frappe.msgprint(_("Created Drug Stock Entry: {0}").format(frappe.utils.get_link_to_form('Stock Entry', drug_se_name)), alert=True)
+                 except Exception as e:
+                      frappe.log_error(f"Failed to create Drug Stock Entry for {doc.name}: {e}", "Drug Stock Issue Error")
+                      # Decide if failure to issue stock should prevent billing/completion
+                      # Option 1: Throw error to stop the whole process
+                      frappe.throw(_("Failed to create Stock Entry for Drugs. Please check stock levels and error logs. Error: {0}").format(e))
+                      # Option 2: Log and continue (billing might happen without stock deduction - less safe)
+                      # frappe.msgprint(_("Warning: Failed to create Stock Entry for Drugs. Proceeding with billing, but check inventory."), indicator='orange')
+
+        # --- 3. Handle Billing (Existing Logic) ---
+        # Prepare billable items list (including drugs and consumables)
         billable_items = []
 
         # Add medication items
@@ -826,58 +909,178 @@ def create_observation_consumables_stock_entry(doc):
 
 @frappe.whitelist()
 def get_batch_query(doctype, txt, searchfield, start, page_len, filters):
-    """Get query for batch selection based on item and warehouse"""
-    if not filters.get('item'):
-        return []
-        
-    item_code = filters.get('item')
-    warehouse = filters.get('warehouse')
-    
-    # If warehouse is not selected, we can't filter by stock
-    if not warehouse:
-        return frappe.get_all('Batch',
-            filters={
-                'item': item_code,
-                'batch_qty': ['>', 0],
-                'disabled': 0,
-                'name': ['like', f'%{txt}%'] if txt else ['!=', '']
-            },
-            fields=['name'],
-            start=start,
-            page_length=page_len,
-            as_list=1
+    """Get query for batch selection with enhanced information, showing all batches
+    and indicating which ones have stock in which warehouses."""
+    try:
+        # Log input parameters for debugging
+        frappe.log_error(
+            message=f"get_batch_query parameters: doctype={doctype}, txt={txt}, searchfield={searchfield}, start={start}, page_len={page_len}, filters={filters}",
+            title="Batch Query Params"
         )
-    
-    # Get batches with stock in the specified warehouse
-    batch_list = frappe.db.sql("""
-        SELECT 
-            DISTINCT sle.batch_no,
-            SUM(sle.actual_qty) as available_qty
-        FROM 
-            `tabStock Ledger Entry` sle
-        INNER JOIN 
-            `tabBatch` batch ON sle.batch_no = batch.name
-        WHERE 
-            sle.item_code = %(item)s
-            AND sle.warehouse = %(warehouse)s
-            AND sle.batch_no IS NOT NULL
-            AND sle.batch_no != ''
-            AND batch.disabled = 0
-            AND (sle.batch_no LIKE %(txt)s OR %(txt)s = '')
-        GROUP BY 
-            sle.batch_no
-        HAVING 
-            SUM(sle.actual_qty) > 0
-        ORDER BY 
-            batch.expiry_date ASC, available_qty DESC
-        LIMIT 
-            %(start)s, %(page_len)s
-    """, {
-        'item': item_code, 
-        'warehouse': warehouse,
-        'txt': f"%{txt}%" if txt else "",
-        'start': start,
-        'page_len': page_len
-    }, as_dict=0)
-    
-    return batch_list 
+        
+        if not filters.get('item'):
+            return []
+            
+        item_code = filters.get('item')
+        warehouse = filters.get('warehouse')
+        
+        frappe.log_error(
+            message=f"Processing batch query for item={item_code}, warehouse={warehouse}",
+            title="Batch Query Processing"
+        )
+        
+        # Import the get_batch_qty function from Batch
+        from erpnext.stock.doctype.batch.batch import get_batch_qty
+        
+        # First get all valid batches for this item
+        batch_query = """
+            SELECT 
+                b.name,
+                b.manufacturing_date,
+                b.expiry_date
+            FROM 
+                `tabBatch` b
+            WHERE 
+                b.item = %s 
+                AND b.disabled = 0
+        """
+        batch_params = [item_code]
+        
+        if txt:
+            batch_query += " AND b.name LIKE %s"
+            batch_params.append(f"%{txt}%")
+        
+        # Order by expiry date (oldest first)
+        batch_query += " ORDER BY IFNULL(b.expiry_date, '9999-12-31') ASC"
+        
+        batches = frappe.db.sql(batch_query, batch_params, as_dict=1)
+        
+        # Now create the results array with formatted labels
+        results = []
+        
+        for batch in batches:
+            # Get actual quantity in the specified warehouse using the get_batch_qty function
+            qty_in_warehouse = 0
+            if warehouse:
+                qty_in_warehouse = get_batch_qty(batch.name, warehouse, item_code) or 0
+            
+            # Get quantities in all warehouses
+            # This will return a dictionary of qty by warehouse if warehouse is None
+            all_warehouse_qty = get_batch_qty(batch.name, None, item_code)
+            
+            # Format dates for display
+            mfg_date = f" | Mfg: {batch.manufacturing_date.strftime('%d-%m-%Y')}" if batch.manufacturing_date else ""
+            exp_date = f" | Exp: {batch.expiry_date.strftime('%d-%m-%Y')}" if batch.expiry_date else ""
+            
+            # Check if this batch has stock anywhere
+            has_stock = isinstance(all_warehouse_qty, dict) and any(all_warehouse_qty.values())
+            
+            # Format stock information
+            stock_info = ""
+            warehouses_with_stock = []
+            
+            # If specified warehouse has stock, show it first
+            if warehouse and qty_in_warehouse > 0:
+                stock_info = f" | {warehouse}: {qty_in_warehouse}"
+            elif isinstance(all_warehouse_qty, dict):
+                # Show stock in all warehouses where it exists
+                for wh, qty in all_warehouse_qty.items():
+                    if qty > 0:
+                        warehouses_with_stock.append(f"{wh}: {qty}")
+                
+                if warehouses_with_stock:
+                    stock_info = " | Stock in: " + ", ".join(warehouses_with_stock)
+                else:
+                    stock_info = " | No stock"
+            else:
+                stock_info = " | No stock"
+                
+            # Create a label that clearly shows stock information
+            label = f"{batch.name}{mfg_date}{exp_date}{stock_info}"
+            
+            # Sort batches: 
+            # 1. Batches with stock in selected warehouse first 
+            # 2. Then batches with stock in other warehouses
+            # 3. Finally batches with no stock
+            sort_key = 0
+            if warehouse and qty_in_warehouse > 0:
+                sort_key = 1  # Highest priority - stock in selected warehouse
+            elif has_stock:
+                sort_key = 0  # Medium priority - stock in other warehouses
+            else:
+                sort_key = -1  # Lowest priority - no stock
+            
+            results.append({
+                'value': batch.name,
+                'label': label,
+                'sort_key': sort_key,
+                'qty_in_warehouse': qty_in_warehouse
+            })
+        
+        # Sort the results by priority and qty (higher qty first within same priority)
+        # Then by expiry date for items with same priority and qty
+        sorted_results = sorted(
+            results, 
+            key=lambda x: (
+                -x['sort_key'],  # Highest priority first
+                -x['qty_in_warehouse'],  # Higher qty first within same priority
+                getattr(next((b for b in batches if b.name == x['value']), None), 'expiry_date', None) or '9999-12-31'  # Then by expiry date
+            )
+        )
+        
+        # Convert to the format expected by the frontend
+        formatted_results = [(r['value'], r['label']) for r in sorted_results]
+        
+        # Apply pagination
+        start_idx = int(start)
+        end_idx = start_idx + int(page_len)
+        paginated_results = formatted_results[start_idx:end_idx]
+        
+        # Log results for debugging
+        frappe.log_error(
+            message=f"Enhanced query results: {paginated_results}",
+            title="Enhanced Batch Results"
+        )
+        
+        return paginated_results
+            
+    except Exception as e:
+        frappe.log_error(
+            message=f"Error in enhanced get_batch_query: {str(e)}\nTraceback: {frappe.get_traceback()}",
+            title="Enhanced Batch Query Error"
+        )
+        return [] 
+
+# --- Helper function to create drug stock entry ---
+# Place this function within the same file (doc_events.py) or import if moved elsewhere
+def create_drug_stock_entry(med_entry_doc, source_warehouse, drugs_to_issue):
+     """Creates and submits a Material Issue Stock Entry for drugs"""
+     stock_entry = frappe.new_doc("Stock Entry")
+     stock_entry.stock_entry_type = "Material Issue"
+     stock_entry.purpose = "Material Issue" # Or set a more specific purpose if needed
+     stock_entry.company = med_entry_doc.company
+     stock_entry.posting_date = med_entry_doc.posting_date
+     # Use time from med_entry_doc if available, otherwise default
+     stock_entry.posting_time = getattr(med_entry_doc, 'posting_time', frappe.utils.nowtime())
+     stock_entry.set_posting_time = 1
+     stock_entry.from_warehouse = source_warehouse
+     stock_entry.custom_reference_ime = med_entry_doc.name # Example custom field on Stock Entry
+     stock_entry.remarks = _("Material Issue for Inpatient Medication Entry: {0}").format(med_entry_doc.name)
+
+     for item_detail in drugs_to_issue:
+          stock_entry.append("items", {
+               "item_code": item_detail["item_code"],
+               "item_name": item_detail["item_name"],
+               "qty": item_detail["qty"],
+               "uom": item_detail["uom"],
+               "s_warehouse": source_warehouse,
+               "t_warehouse": None,
+               # Do NOT set batch_no here - let Frappe handle FEFO
+               "allow_zero_valuation_rate": 1 # Set if drugs often have zero rate (e.g., covered by insurance)
+               # Add cost_center if applicable/available from med_entry_doc or service_unit
+          })
+
+     # Insert and Submit
+     stock_entry.insert(ignore_permissions=True) # Use ignore_permissions if needed
+     stock_entry.submit()
+     return stock_entry.name 

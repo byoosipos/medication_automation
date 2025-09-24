@@ -21,6 +21,21 @@ frappe.ui.form.on('Patient Encounter', {
                 }
             });
         }
+    },
+    
+    onload: function(frm) {
+        if (frm.is_new() && !frm.doc.practitioner) {
+            // Only get current practitioner if not already set
+            frappe.call({
+                method: 'medication_automation.config.autofill.get_current_practitioner',
+                callback: function(r) {
+                    if (r.message) {
+                        frm.set_value('practitioner', r.message.name);
+                        // Medical department will be auto-fetched
+                    }
+                }
+            });
+        }
     }
 });
 

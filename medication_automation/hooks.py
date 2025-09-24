@@ -34,7 +34,9 @@ app_license = "MIT"
 app_include_js = [
 	"/assets/medication_automation/js/patient_encounter.js",
 	"/assets/medication_automation/js/stock_entry.js",
-	"/assets/medication_automation/js/lab_consumables.js"
+	"/assets/medication_automation/js/lab_consumables.js",
+	"/assets/medication_automation/js/lab_test.js",
+	"/assets/medication_automation/js/observation.js"
 ]
 
 # include js, css files in header of web template
@@ -55,8 +57,8 @@ app_include_js = [
 doctype_js = {
 	"Patient Encounter": "public/js/patient_encounter.js",
 	"Stock Entry": "public/js/stock_entry.js",
-	"Lab Test": "public/js/lab_consumables.js",
-	"Observation": "public/js/lab_consumables.js"
+	"Lab Test": "public/js/lab_test.js",
+	"Observation": "public/js/observation.js"
 }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -162,7 +164,8 @@ doc_events = {
 		"on_submit": "medication_automation.doc_events.handle_billable_service"
 	},
 	"Clinical Procedure": {
-		"on_submit": "medication_automation.doc_events.handle_billable_service"
+		"on_submit": "medication_automation.medication_automation.autocreate.create_sales_invoice_for_clinical_procedure",
+		"on_update": "medication_automation.medication_automation.autocreate.create_sales_invoice_for_clinical_procedure"
 	},
 	"Therapy Session": {
 		"on_submit": "medication_automation.doc_events.handle_billable_service"
@@ -174,6 +177,11 @@ doc_events = {
 		"on_submit": "medication_automation.doc_events.handle_billable_service"
 	},
 	"Patient Encounter": {
+		"validate": [
+			"medication_automation.config.inpatientvalidations.validate_consultation_charge",
+			"medication_automation.config.inpatientvalidations.validate_vital_signs",
+			"medication_automation.config.autofill.set_missing_values"
+		],
 		"on_submit": "medication_automation.doc_events.handle_billable_service"
 	},
 	"Observation": {
@@ -221,7 +229,7 @@ override_whitelisted_methods = {
 # Ignore links to specified DocTypes when deleting documents
 # -----------------------------------------------------------
 
-# ignore_links_on_delete = ["Communication", "ToDo"]
+# ignore_links_on_delete = ["Communication", "ToDo", "User", "Employee"]
 
 # Request Events
 # ----------------

@@ -7,13 +7,14 @@
  "doctype": "Workspace",
  "for_user": "",
  "hide_custom": 0,
+ "icon": "image-view",
  "idx": 0,
- "indicator_color": "blue",
+ "indicator_color": "",
  "is_hidden": 0,
  "label": "Medication Automation",
  "links": [],
- "modified": "2025-02-24 22:08:45.003831",
- "modified_by": "Administrator",
+ "modified": "2025-08-26 13:39:42.914569",
+ "modified_by": "david.it@jmmuganda.com",
  "module": "Medication Automation",
  "name": "Medication Automation",
  "number_cards": [],
@@ -33,7 +34,7 @@
    "role": "Nursing User"
   }
  ],
- "sequence_id": 1.0,
+ "sequence_id": 4.0,
  "shortcuts": [
   {
    "color": "Grey",

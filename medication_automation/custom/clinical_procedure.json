@@ -1,0 +1,12 @@
+{
+ "custom_fields": [
+  {
+   "allow_on_submit": 1,
+   "fieldname": "ref_sales_invoice",
+   "fieldtype": "Link",
+   "label": "Reference Sales Invoice",
+   "options": "Sales Invoice",
+   "read_only": 1
+  }
+ ]
+} 

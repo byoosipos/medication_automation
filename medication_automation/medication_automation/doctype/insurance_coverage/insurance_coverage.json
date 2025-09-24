@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "format:INS-{insurance_company}-{patient}-{####}",
- "creation": "2024-03-19 12:00:00.000000",
+ "creation": "2024-03-19 12:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -219,12 +219,12 @@
  "is_submittable": 1,
  "links": [
   {
-    "group": "Connections",
-    "link_doctype": "Patient",
-    "link_fieldname": "patient"
+   "group": "Connections",
+   "link_doctype": "Patient",
+   "link_fieldname": "patient"
   }
  ],
- "modified": "2024-03-19 12:00:00.000000",
+ "modified": "2025-02-26 01:27:14.287166",
  "modified_by": "Administrator",
  "module": "Medication Automation",
  "name": "Insurance Coverage",
@@ -232,6 +232,8 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -241,9 +243,8 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
-   "write": 1,
-   "cancel": 1,
-   "amend": 1
+   "submit": 1,
+   "write": 1
   },
   {
    "email": 1,
@@ -253,10 +254,25 @@
    "report": 1,
    "role": "Nursing User",
    "share": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Healthcare Administrator",
+   "share": 1,
+   "submit": 1,
+   "write": 1
   }
  ],
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
  "track_changes": 1
-} 
+}

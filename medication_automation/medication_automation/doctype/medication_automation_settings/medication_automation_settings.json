@@ -12,6 +12,10 @@
   "column_break_4",
   "enable_auto_stock_reconciliation",
   "auto_close_stock_entry",
+  "lab_consumables_section",
+  "laboratory_warehouse",
+  "column_break_lab",
+  "radiology_warehouse",
   "section_break_7",
   "shift_configuration_section",
   "first_shift_start",
@@ -85,6 +89,29 @@
    "fieldname": "auto_close_stock_entry",
    "fieldtype": "Check",
    "label": "Auto Close Stock Entry"
+  },
+  {
+   "fieldname": "lab_consumables_section",
+   "fieldtype": "Section Break",
+   "label": "Lab Consumables Settings"
+  },
+  {
+   "description": "Default warehouse for laboratory consumables",
+   "fieldname": "laboratory_warehouse",
+   "fieldtype": "Link",
+   "label": "Laboratory Warehouse",
+   "options": "Warehouse"
+  },
+  {
+   "fieldname": "column_break_lab",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Default warehouse for radiology consumables",
+   "fieldname": "radiology_warehouse",
+   "fieldtype": "Link",
+   "label": "Radiology Warehouse",
+   "options": "Warehouse"
   },
   {
    "fieldname": "section_break_7",
